@@ -3,12 +3,13 @@ import { stats } from '../data/content'
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="section bg-dark">
+    <section id="about" className="section bg-dark-medium">
       <div className="container">
         <div className="grid lg:grid-cols-3 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8 }}
             className="lg:col-span-2"
           >
@@ -35,17 +36,19 @@ const About: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-6"
           >
             {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="card p-6 text-center"
-              >
+                             <motion.div
+                 key={stat.label}
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true }}
+                 transition={{ duration: 0.6, delay: index * 0.1 }}
+                 className="card p-6 text-center"
+               >
                 <h3 className="text-3xl font-bold text-primary mb-2">{stat.number}</h3>
                 <p className="text-text-secondary font-medium">{stat.label}</p>
               </motion.div>

@@ -8,6 +8,7 @@ const Blog: React.FC = () => {
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-4xl font-bold text-center mb-12"
         >
@@ -20,16 +21,17 @@ const Blog: React.FC = () => {
               key={post.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="card overflow-hidden"
+              className="card overflow-hidden flex flex-col"
             >
               <div className="h-48 bg-gradient-to-br from-dark-lighter to-dark-light flex items-center justify-center">
                 <post.icon size={48} className="text-primary" />
               </div>
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-1">
                 <h3 className="text-xl font-bold mb-3">{post.title}</h3>
-                <p className="text-text-secondary mb-4 leading-relaxed">{post.description}</p>
-                <div className="flex justify-between text-text-muted text-sm">
+                <p className="text-text-secondary mb-4 leading-relaxed flex-1">{post.description}</p>
+                <div className="flex justify-between text-text-muted text-sm mt-auto">
                   <span>{post.date}</span>
                   <span>{post.readTime}</span>
                 </div>

@@ -3,6 +3,9 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 
+// Import routes
+const episodesRouter = require('./routes/episodes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -155,20 +158,8 @@ app.get('/api/blog/posts/:id', (req, res) => {
   });
 });
 
-// Episode tracking endpoints (placeholder for future implementation)
-app.get('/api/episodes', (req, res) => {
-  res.json({
-    message: 'Episodes endpoint - to be implemented',
-    episodes: []
-  });
-});
-
-app.get('/api/episodes/latest', (req, res) => {
-  res.json({
-    message: 'Latest episode endpoint - to be implemented',
-    episode: null
-  });
-});
+// Use episodes router
+app.use('/api', episodesRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
