@@ -1,0 +1,73 @@
+import { useState, useEffect } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+
+// Components
+import Navigation from '../components/Navigation'
+import Footer from '../components/Footer'
+
+// Sections
+import Hero from '../sections/Hero'
+import About from '../sections/About'
+import Hosts from '../sections/Hosts'
+import Episodes from '../sections/Episodes'
+import Blog from '../sections/Blog'
+import Contact from '../sections/Contact'
+
+const Home: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const [scrolled, setScrolled] = useState<boolean>(false)
+  const { scrollY } = useScroll()
+  const progress = useTransform(scrollY, [0, 1000], [0, 100])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+    setIsMenuOpen(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-dark text-text-primary">
+      {/* Progress Bar */}
+      <motion.div 
+        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-primary to-primary-light z-50"
+        style={{ width: `${progress.get()}%` }}
+      />
+
+      {/* Navigation */}
+      <Navigation scrollToSection={scrollToSection} />
+
+      {/* Hero Section */}
+      <Hero scrollToSection={scrollToSection} />
+
+      {/* About Section */}
+      <About />
+
+      {/* Hosts Section */}
+      <Hosts />
+
+      {/* Episodes Section */}
+      <Episodes />
+
+      {/* Blog Section */}
+      <Blog />
+
+      {/* Contact Section */}
+      <Contact />
+
+      {/* Footer */}
+      <Footer scrollToSection={scrollToSection} />
+    </div>
+  )
+}
+
+export default Home
