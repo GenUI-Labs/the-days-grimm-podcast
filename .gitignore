@@ -184,3 +184,6 @@ pnpm-lock.yaml
 
 # Local development files
 *.local
+
+# Local Netlify folder
+.netlify

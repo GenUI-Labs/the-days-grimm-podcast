@@ -1,0 +1,25 @@
+# example netlify.toml
+[build]
+  command = "npm run build --prefix frontend"
+  functions = "netlify/functions"
+  publish = "frontend/dist"
+
+  ## Uncomment to use this redirect for Single Page Applications like create-react-app.
+  ## Not needed for static site generators.
+  #[[redirects]]
+  #  from = "/*"
+  #  to = "/index.html"
+  #  status = 200
+
+  ## (optional) Settings for Netlify Dev
+  ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
+  [dev]
+    # Runs your local dev (starts both backend and frontend via npm run dev)
+    command = "npm run dev"
+    # Your app serves on 3000 (Vite). Netlify Dev will proxy to this.
+    targetPort = 3000
+    # Netlify Dev UI port
+    port = 8888
+    publish = "frontend/dist"
+
+  ## more info on configuring this file: https://ntl.fyi/file-based-build-config

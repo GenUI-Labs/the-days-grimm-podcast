@@ -7,7 +7,7 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
   return (
-    <section id="home" className="relative min-h-screen flex items-center bg-dark pt-20 overflow-hidden">
+    <section id="home" className="relative min-h-[80vh] sm:min-h-screen flex items-center bg-dark pt-16 sm:pt-20 overflow-hidden">
       {/* Background video */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
@@ -22,7 +22,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
       <div className="container relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -30,22 +30,23 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
             className="text-center lg:text-left"
           >
             <motion.h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 relative bg-gradient-to-r from-white to-primary bg-clip-text text-transparent"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 relative bg-gradient-to-r from-white to-primary bg-clip-text text-transparent"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               The Days Grimm Podcast
             </motion.h1>
-            <p className="text-xl text-text-secondary mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-text-secondary mb-6 sm:mb-8 leading-relaxed">
               Exploring the darker side of life, one episode at a time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               <button 
                 onClick={() => scrollToSection('episodes')}
                 className="btn btn-primary"
               >
-                <Play size={20} />
+                <Play size={18} className="sm:hidden" />
+                <Play size={20} className="hidden sm:inline" />
                 Listen Now
               </button>
               <button 

@@ -34,10 +34,10 @@ const Episodes: React.FC = () => {
     <section id="episodes" className="section bg-dark">
       <div className="container">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className="text-4xl font-bold text-center mb-12"
         >
           Episodes
@@ -52,14 +52,14 @@ const Episodes: React.FC = () => {
         )}
         {featuredEpisode && !loading && !error && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             className="card p-8 max-w-4xl mx-auto mb-16"
           >
             <div
-              className="w-full h-64 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden bg-dark-lighter"
+              className="w-full h-48 sm:h-64 rounded-xl mb-4 sm:mb-6 flex items-center justify-center relative overflow-hidden bg-dark-lighter"
               style={{
                 backgroundImage: featuredEpisode.thumbnail ? `url(${featuredEpisode.thumbnail})` : undefined,
                 backgroundSize: 'cover',
@@ -74,11 +74,11 @@ const Episodes: React.FC = () => {
                 </h4>
               </div>
             </div>
-            <div className="flex flex-wrap gap-4 text-text-muted text-sm mb-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4 text-text-muted text-sm mb-3 sm:mb-4">
               <span>{featuredEpisode.date}</span>
               <span>{(featuredEpisode as any).isUpcoming ? 'Upcoming' : featuredEpisode.duration}</span>
             </div>
-            <p className="text-text-secondary mb-6 leading-relaxed">{featuredEpisode.description}</p>
+            <p className="text-text-secondary mb-5 sm:mb-6 leading-relaxed">{featuredEpisode.description}</p>
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               {(featuredEpisode as any).isUpcoming ? (
                 <a href={featuredEpisode.youtubeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
@@ -104,40 +104,40 @@ const Episodes: React.FC = () => {
         
         {/* Recent Episodes */}
         <motion.h3
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
           className="text-3xl font-bold text-center mb-8"
         >
           Recent Episodes
         </motion.h3>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {recentEpisodes.map((episode, index) => (
             <motion.div
               key={episode.id || `${episode.title}-${index}`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               className="card p-6 relative overflow-hidden flex flex-col"
             >
               {/* Episode number badge intentionally removed per request */}
               <div
-                className="w-full h-48 rounded-lg mb-4 flex items-center justify-center bg-dark-lighter"
+                className="w-full h-40 sm:h-48 rounded-lg mb-3 sm:mb-4 flex items-center justify-center bg-dark-lighter"
                 style={{
                   backgroundImage: episode.thumbnail ? `url(${episode.thumbnail})` : undefined,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               />
-              <div className="flex justify-between text-text-muted text-sm mb-3">
+              <div className="flex justify-between text-text-muted text-xs sm:text-sm mb-2 sm:mb-3">
                 <span>{episode.date}</span>
                 <span>{episode.duration}</span>
               </div>
-              <h3 className="text-xl font-bold mb-3">{episode.title}</h3>
-              <p className="text-text-secondary mb-4 leading-relaxed">{episode.description}</p>
+              <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{episode.title}</h3>
+              <p className="text-text-secondary mb-3 sm:mb-4 leading-relaxed">{episode.description}</p>
               <div className="flex justify-center mt-auto">
                 <a
                   href={episode.youtubeUrl}
@@ -153,11 +153,11 @@ const Episodes: React.FC = () => {
           ))}
         </div>
         
-                 <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
+         <motion.div
+           initial={{ opacity: 0 }}
+           whileInView={{ opacity: 1 }}
            viewport={{ once: true }}
-           transition={{ duration: 0.6, delay: 0.4 }}
+           transition={{ duration: 0.35, ease: 'easeOut' }}
            className="text-center"
          >
            <a 

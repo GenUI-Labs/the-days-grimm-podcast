@@ -6,10 +6,10 @@ const Blog: React.FC = () => {
     <section id="blog" className="section bg-dark-medium">
       <div className="container">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className="text-4xl font-bold text-center mb-12"
         >
           Latest Blog Posts
@@ -19,10 +19,10 @@ const Blog: React.FC = () => {
           {blogPosts.map((post, index) => (
             <motion.div
               key={post.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               className="card overflow-hidden flex flex-col"
             >
               <div className="h-48 bg-gradient-to-br from-dark-lighter to-dark-light flex items-center justify-center">

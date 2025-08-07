@@ -82,7 +82,7 @@ const Navigation: React.FC<NavigationProps> = ({ scrollToSection }) => {
                     </a>
                   ) : (
                     <button
-                      onClick={() => scrollToSection(item)}
+                      onClick={() => { scrollToSection(item); setIsMenuOpen(false); }}
                       className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize block w-full text-left"
                     >
                       {item}
