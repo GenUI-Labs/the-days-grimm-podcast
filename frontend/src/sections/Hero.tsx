@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Play, Mic } from 'lucide-react'
+import { Play } from 'lucide-react'
 
 interface HeroProps {
   scrollToSection: (sectionId: string) => void
@@ -7,8 +7,21 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
   return (
-    <section id="home" className="min-h-screen flex items-center bg-gradient-to-br from-dark to-dark-light pt-20">
-      <div className="container">
+    <section id="home" className="relative min-h-screen flex items-center bg-dark pt-20 overflow-hidden">
+      {/* Background video */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src="/hero.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/hero-poster.jpg"
+      />
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+
+      <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -17,7 +30,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
             className="text-center lg:text-left"
           >
             <motion.h1 
-              className="text-5xl lg:text-6xl font-bold mb-6 relative bg-gradient-to-r from-white to-primary bg-clip-text text-transparent"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 relative bg-gradient-to-r from-white to-primary bg-clip-text text-transparent"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -44,16 +57,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
             </div>
           </motion.div>
           
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex justify-center"
-          >
-            <div className="w-80 h-80 bg-gradient-to-br from-dark-light to-dark-lighter rounded-3xl flex items-center justify-center shadow-2xl shadow-black/30">
-              <Mic size={80} className="text-primary" />
-            </div>
-          </motion.div>
+          {/* Right column intentionally removed to allow full-bleed video background */}
         </div>
       </div>
     </section>
