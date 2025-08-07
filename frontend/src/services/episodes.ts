@@ -11,6 +11,7 @@ export interface Episode {
   youtubeUrl: string;
   spotifyUrl: string | null;
   applePodcastUrl: string | null;
+  isUpcoming?: boolean;
 }
 
 export interface EpisodesResponse {
