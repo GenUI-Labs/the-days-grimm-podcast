@@ -16,8 +16,9 @@ import Contact from '../sections/Contact'
 const Home: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [scrolled, setScrolled] = useState<boolean>(false)
-  const { scrollY } = useScroll()
-  const progress = useTransform(scrollY, [0, 1000], [0, 100])
+  const { scrollYProgress } = useScroll()
+  // Map scroll progress (0 → 1) to width (0% → 100%) as a MotionValue string
+  const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +41,7 @@ const Home: React.FC = () => {
       {/* Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-primary to-primary-light z-50"
-        style={{ width: `${progress.get()}%` }}
+        style={{ width: progressWidth }}
       />
 
       {/* Navigation */}
