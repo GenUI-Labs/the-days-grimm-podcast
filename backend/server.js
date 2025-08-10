@@ -5,6 +5,7 @@ require('dotenv').config();
 
 // Import routes
 const episodesRouter = require('./routes/episodes');
+const blogRouter = require('./routes/blog');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -143,20 +144,8 @@ app.get('/api/printful/catalog', async (req, res) => {
   }
 });
 
-// Blog endpoints (placeholder for future implementation)
-app.get('/api/blog/posts', (req, res) => {
-  res.json({
-    message: 'Blog posts endpoint - to be implemented',
-    posts: []
-  });
-});
-
-app.get('/api/blog/posts/:id', (req, res) => {
-  res.json({
-    message: 'Single blog post endpoint - to be implemented',
-    post: null
-  });
-});
+// Blog router
+app.use('/api/blog', blogRouter);
 
 // Use episodes router
 app.use('/api', episodesRouter);
