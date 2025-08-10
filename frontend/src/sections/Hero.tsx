@@ -9,8 +9,9 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
   return (
     <section id="home" className="relative min-h-[80vh] sm:min-h-screen flex items-center bg-dark pt-16 sm:pt-20 overflow-hidden">
       {/* Background video */}
+      {/* Desktop/Tablet background video */}
       <video
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover hidden sm:block"
         src="/hero.mp4"
         autoPlay
         loop
@@ -18,6 +19,20 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         playsInline
         poster="/hero-poster.jpg"
       />
+
+      {/* Mobile background: YouTube Short (muted, autoplay, loop) */}
+      <div className="absolute inset-0 sm:hidden pointer-events-none overflow-hidden">
+        <iframe
+          className="absolute top-0 left-0 w-full h-full"
+          src="https://www.youtube.com/embed/hAD9pqPrexI?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=hAD9pqPrexI&modestbranding=1&rel=0&showinfo=0"
+          title="The Days Grimm background video"
+          frameBorder="0"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      </div>
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
@@ -43,7 +58,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               <button 
                 onClick={() => scrollToSection('episodes')}
-                className="btn btn-primary"
+                className="btn btn-primary w-full sm:w-auto justify-center"
               >
                 <Play size={18} className="sm:hidden" />
                 <Play size={20} className="hidden sm:inline" />
@@ -51,7 +66,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
               </button>
               <button 
                 onClick={() => scrollToSection('about')}
-                className="btn btn-secondary"
+                className="btn btn-secondary w-full sm:w-auto justify-center"
               >
                 Learn More
               </button>

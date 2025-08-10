@@ -122,7 +122,7 @@ const Episodes: React.FC = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="card p-6 relative overflow-hidden flex flex-col"
+              className="card p-6 relative overflow-hidden flex flex-col text-center"
             >
               {/* Episode number badge intentionally removed per request */}
               <div
@@ -134,8 +134,8 @@ const Episodes: React.FC = () => {
                 }}
               />
               <div className="flex justify-between text-text-muted text-xs sm:text-sm mb-2 sm:mb-3">
-                <span>{episode.date}</span>
-                <span>{episode.duration}</span>
+                <span className="mx-auto sm:mx-0">{episode.date}</span>
+                <span className="hidden sm:inline">{episode.duration}</span>
               </div>
               <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{episode.title}</h3>
               <p className="text-text-secondary mb-3 sm:mb-4 leading-relaxed">{episode.description}</p>

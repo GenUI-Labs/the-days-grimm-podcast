@@ -5,7 +5,7 @@ const About: React.FC = () => {
   return (
     <section id="about" className="section bg-dark-medium">
       <div className="container">
-        <div className="grid lg:grid-cols-3 gap-12 items-center">
+        <div className="grid lg:grid-cols-3 gap-12 items-center text-center lg:text-left">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -40,7 +40,7 @@ const About: React.FC = () => {
             transition={{ duration: 0.4, ease: 'easeOut' }}
             className="space-y-6"
           >
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
                <motion.div
                   key={stat.label}
                   initial={{ opacity: 0 }}

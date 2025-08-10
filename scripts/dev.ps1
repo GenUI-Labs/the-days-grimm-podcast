@@ -1,7 +1,7 @@
 Write-Host "Starting The Days Grimm Development Servers..." -ForegroundColor Green
 Write-Host ""
 Write-Host "Frontend will run on: http://localhost:3000" -ForegroundColor Cyan
-Write-Host "Backend will run on:  http://localhost:5000" -ForegroundColor Cyan
+Write-Host "Backend will run on:  http://localhost:${env:VITE_BACKEND_PORT -as [string] -replace '^$', '5000'}" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Press Ctrl+C to stop both servers" -ForegroundColor Yellow
 Write-Host ""
@@ -9,13 +9,15 @@ Write-Host ""
 # Start frontend in a new job
 Start-Job -Name "Frontend" -ScriptBlock {
     Set-Location "frontend"
-    npm run dev
+    # Pass backend port through to Vite for proxy
+    if ($env:VITE_BACKEND_PORT) { npm run dev } else { $env:VITE_BACKEND_PORT='5000'; npm run dev }
 }
 
 # Start backend in a new job
 Start-Job -Name "Backend" -ScriptBlock {
     Set-Location "backend"
-    npm run dev
+    # Allow PORT override for backend
+    if ($env:PORT) { npm run dev } else { $env:PORT='5000'; npm run dev }
 }
 
 Write-Host "Both servers are starting..." -ForegroundColor Green

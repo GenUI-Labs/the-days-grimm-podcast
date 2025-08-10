@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { fetchRedditBlogPosts, type RedditBlogPost } from '../services/blog'
+import { fetchRedditBlogPosts, type RedditBlogPost, type RedditBlogResponse } from '../services/blog'
 
 const Blog: React.FC = () => {
   const [posts, setPosts] = useState<RedditBlogPost[]>([])
+  const [debugInfo, setDebugInfo] = useState<RedditBlogResponse['debug']>()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -11,9 +12,10 @@ const Blog: React.FC = () => {
     let isMounted = true
     ;(async () => {
       try {
-        const data = await fetchRedditBlogPosts(6)
+        const data = await fetchRedditBlogPosts(6, { debug: import.meta.env.DEV })
         if (isMounted) {
-          setPosts(data)
+          setPosts(data.posts || [])
+          setDebugInfo(data.debug)
           setLoading(false)
         }
       } catch (err: any) {
@@ -25,6 +27,14 @@ const Blog: React.FC = () => {
     })()
     return () => { isMounted = false }
   }, [])
+
+  // Log debug info to console only in development; never render it in UI
+  useEffect(() => {
+    if (import.meta.env.DEV && debugInfo) {
+      // eslint-disable-next-line no-console
+      console.log('[Blog Debug]', debugInfo)
+    }
+  }, [debugInfo])
 
   return (
     <section id="blog" className="section bg-dark-medium">

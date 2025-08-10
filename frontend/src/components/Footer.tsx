@@ -6,14 +6,14 @@ const Footer: React.FC<FooterProps> = ({ scrollToSection }) => {
   return (
     <footer className="bg-dark border-t border-dark-border py-12">
       <div className="container">
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
-          <div>
+        <div className="grid md:grid-cols-3 gap-8 mb-8 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start">
             <h3 className="text-xl font-bold mb-4">The Days Grimm</h3>
             <p className="text-text-secondary leading-relaxed">
               Exploring the darker side of life, one episode at a time.
             </p>
           </div>
-          <div>
+          <div className="flex flex-col items-center md:items-start">
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {['about', 'episodes', 'blog', 'contact'].map((item) => (
@@ -28,7 +28,7 @@ const Footer: React.FC<FooterProps> = ({ scrollToSection }) => {
               ))}
             </ul>
           </div>
-          <div>
+          <div className="flex flex-col items-center md:items-start">
             <h4 className="text-lg font-semibold mb-4">Listen On</h4>
             <ul className="space-y-2">
               <li><a href="https://open.spotify.com/show/3JLH1IVdjohOrAOoXTsk18" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-primary transition-colors duration-300">Spotify</a></li>

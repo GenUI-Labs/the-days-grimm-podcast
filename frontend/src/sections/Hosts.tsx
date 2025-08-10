@@ -23,9 +23,9 @@ const Hosts: React.FC = () => {
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="card p-8 flex flex-col"
+                className="card p-8 flex flex-col items-center text-center"
               >
-                              <div className="w-32 h-32 rounded-xl overflow-hidden mb-6">
+                <div className="w-32 h-32 rounded-xl overflow-hidden mb-6 mx-auto">
                   <img 
                     src={host.name === 'Brian' ? '/Brian_Day.jpg' : '/Thomas_Grimm.jpg'} 
                     alt={`${host.name} profile`}
@@ -36,7 +36,7 @@ const Hosts: React.FC = () => {
               <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-4">{host.title}</p>
               <p className="text-text-secondary mb-4 leading-relaxed">{host.description}</p>
               <p className="text-text-secondary mb-6 leading-relaxed">{host.bio}</p>
-                              <div className="flex flex-wrap gap-2 mt-auto">
+                              <div className="flex flex-wrap gap-2 mt-auto justify-center">
                   {host.traits.map((trait) => (
                     <span key={trait} className="px-3 py-1 bg-primary/20 text-primary text-sm font-medium rounded-full border border-primary/30">
                       {trait}
