@@ -7,7 +7,7 @@ const youtube = google.youtube('v3');
 // Cache configuration
 let episodesCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 const FALLBACK_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 // Helper function to format duration

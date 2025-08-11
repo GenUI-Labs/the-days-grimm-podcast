@@ -18,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ scrollToSection }) => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navItems = ['home', 'about', 'hosts', 'episodes', 'blog', 'connect', 'merch']
+  const navItems = ['home', 'about', 'hosts', 'episodes', 'blog', 'contact', 'merch']
 
   return (
     <nav className={`fixed top-0 w-full z-40 transition-all duration-300 ${

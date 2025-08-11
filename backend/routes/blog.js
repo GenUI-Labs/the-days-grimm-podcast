@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Simple in-memory cache for Reddit results
 const redditCache = new Map(); // key -> { ts: number, payload: any }
-const BLOG_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const BLOG_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Utility: pick the best available thumbnail from a Reddit post payload
 const pickBestThumbnail = (d) => {
