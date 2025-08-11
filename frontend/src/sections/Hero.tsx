@@ -20,19 +20,16 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         poster="/hero-poster.jpg"
       />
 
-      {/* Mobile background: YouTube Short (muted, autoplay, loop) */}
-      <div className="absolute inset-0 sm:hidden pointer-events-none overflow-hidden">
-        <iframe
-          className="absolute top-0 left-0 w-full h-full"
-          src="https://www.youtube.com/embed/hAD9pqPrexI?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=hAD9pqPrexI&modestbranding=1&rel=0&showinfo=0"
-          title="The Days Grimm background video"
-          frameBorder="0"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          referrerPolicy="strict-origin-when-cross-origin"
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-      </div>
+      {/* Mobile background video */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover sm:hidden pointer-events-none"
+        src="/hero-mobile.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/hero-poster.jpg"
+      />
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 

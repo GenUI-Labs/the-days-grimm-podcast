@@ -20,7 +20,9 @@ export interface EpisodesResponse {
 
 export const fetchEpisodes = async (): Promise<Episode[]> => {
   try {
-    const response = await fetch('/api/episodes');
+    const response = await fetch('/api/episodes', {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -36,7 +38,9 @@ export const fetchEpisodes = async (): Promise<Episode[]> => {
 
 export const fetchEpisodesHealth = async () => {
   try {
-    const response = await fetch('/api/episodes/health');
+    const response = await fetch('/api/episodes/health', {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

@@ -3,6 +3,54 @@ const axios = require('axios');
 
 const router = express.Router();
 
+// Simple in-memory cache for Reddit results
+const redditCache = new Map(); // key -> { ts: number, payload: any }
+const BLOG_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+// Utility: pick the best available thumbnail from a Reddit post payload
+const pickBestThumbnail = (d) => {
+  const unescape = (u) => (typeof u === 'string' ? u.replace(/&amp;/g, '&') : u);
+  const isImageUrl = (u) => typeof u === 'string' && /\.(jpg|jpeg|png|webp|gif)(?:\?|$)/i.test(u);
+
+  // 1) preview -> original source
+  try {
+    const src = d?.preview?.images?.[0]?.source?.url;
+    if (src) return unescape(src);
+  } catch {}
+
+  // 2) preview -> pick the largest resolution if available
+  try {
+    const resolutions = d?.preview?.images?.[0]?.resolutions || [];
+    if (resolutions.length > 0) {
+      return unescape(resolutions[resolutions.length - 1].url);
+    }
+  } catch {}
+
+  // 3) gallery/media_metadata
+  try {
+    const galleryItems = d?.gallery_data?.items;
+    const mediaMeta = d?.media_metadata;
+    if (galleryItems && mediaMeta) {
+      const firstId = galleryItems[0]?.media_id;
+      const meta = firstId ? mediaMeta[firstId] : null;
+      const source = meta?.s?.u || (Array.isArray(meta?.p) ? meta.p[meta.p.length - 1]?.u : null);
+      if (source) return unescape(source);
+    }
+  } catch {}
+
+  // 4) direct url if it's an image
+  if (isImageUrl(d?.url_overridden_by_dest)) return unescape(d.url_overridden_by_dest);
+  if (isImageUrl(d?.url)) return unescape(d.url);
+
+  // 5) fallback to thumbnail if it's a valid external URL (Reddit uses keywords like 'self', 'default', 'nsfw' otherwise)
+  const t = d?.thumbnail;
+  if (t && /^https?:\/\//i.test(t) && !['self', 'default', 'nsfw', 'image', 'spoiler'].includes(String(t).toLowerCase())) {
+    return unescape(t);
+  }
+
+  return null;
+};
+
 // GET /api/blog/reddit
 // Proxies Reddit search for posts with a specific flair in a subreddit and
 // returns a simplified, safe JSON payload for the frontend.
@@ -18,6 +66,14 @@ router.get('/reddit', async (req, res) => {
     const requiredFlair = typeof req.query.flair === 'string' ? req.query.flair : envFlair;
     const allowedAuthor = typeof req.query.author === 'string' ? req.query.author : envAuthor;
     const debug = String(req.query.debug || '0') === '1';
+    // Cache key includes config inputs that affect results
+    const cacheKey = JSON.stringify({ subreddit, requiredFlair, allowedAuthor, limit });
+    const cached = redditCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < BLOG_CACHE_TTL) {
+      res.set('Cache-Control', `public, max-age=${Math.floor(BLOG_CACHE_TTL / 1000)}`);
+      return res.json(cached.payload);
+    }
+
 
     if (!subreddit) {
       return res.status(400).json({
@@ -69,7 +125,7 @@ router.get('/reddit', async (req, res) => {
         createdUtc: d.created_utc,
         author: d.author,
         flair: d.link_flair_text || d.author_flair_text || null,
-        thumbnail: d.thumbnail && d.thumbnail.startsWith('http') ? d.thumbnail : null
+        thumbnail: pickBestThumbnail(d)
       }));
 
     const payload = { posts };
@@ -90,6 +146,9 @@ router.get('/reddit', async (req, res) => {
       });
     }
 
+    // Store in cache and set cache headers
+    redditCache.set(cacheKey, { ts: Date.now(), payload });
+    res.set('Cache-Control', `public, max-age=${Math.floor(BLOG_CACHE_TTL / 1000)}`);
     res.json(payload);
   } catch (error) {
     const status = error?.response?.status || 500;

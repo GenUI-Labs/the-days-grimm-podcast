@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+// removed framer-motion animations for smoother scrolling
 import { stats } from '../data/content'
 
 const About: React.FC = () => {
@@ -6,13 +6,7 @@ const About: React.FC = () => {
     <section id="about" className="section bg-dark-medium">
       <div className="container">
         <div className="grid lg:grid-cols-3 gap-12 items-center text-center lg:text-left">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="lg:col-span-2"
-          >
+          <div className="lg:col-span-2">
             <h2 className="text-4xl font-bold mb-6">About The Days Grimm</h2>
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-xl border-l-4 border-primary mb-6">
               <p className="text-lg italic text-primary font-medium text-center">
@@ -31,29 +25,19 @@ const About: React.FC = () => {
             <p className="text-text-secondary leading-relaxed">
               Our brand is not built on polished narratives but on the authentic, often messy, intersection of hardship and humor. The most compelling guests are those who have navigated a "Grimm" reality and emerged with a story to tell, and ideally, a sense of humor about it. This dynamic is the core of our appeal and the primary filter for identifying a story worth telling.
             </p>
-          </motion.div>
+          </div>
           
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             {stats.map((stat) => (
-               <motion.div
+               <div
                   key={stat.label}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="card p-6 text-center"
                 >
                 <h3 className="text-3xl font-bold text-primary mb-2">{stat.number}</h3>
                 <p className="text-text-secondary font-medium">{stat.label}</p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

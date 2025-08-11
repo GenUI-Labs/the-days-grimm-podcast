@@ -7,7 +7,7 @@ const youtube = google.youtube('v3');
 // Cache configuration
 let episodesCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 const FALLBACK_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 // Helper function to format duration
@@ -150,7 +150,7 @@ router.get('/episodes', async (req, res) => {
       channelId: channelId,
       part: 'snippet',
       order: 'date',
-      maxResults: 10, // Request more; we'll filter Shorts then take 4
+      maxResults: 10, // Request more; we'll filter Shorts and keep enough for UI needs
       type: 'video'
     });
 
@@ -180,6 +180,10 @@ router.get('/episodes', async (req, res) => {
         const hasShortsTag = /#shorts/i.test(title);
         const liveState = video.snippet?.liveBroadcastContent || 'none';
         const isUpcoming = liveState === 'upcoming' || durationSeconds === 0;
+        const scheduledStart = (isUpcoming && video.liveStreamingDetails?.scheduledStartTime)
+          ? new Date(video.liveStreamingDetails.scheduledStartTime).getTime()
+          : 0;
+        const published = new Date(video.snippet.publishedAt).getTime();
         return {
           id: video.id,
           order: orderIndex.get(video.id) ?? 9999,
@@ -194,6 +198,8 @@ router.get('/episodes', async (req, res) => {
             month: 'long',
             day: 'numeric'
           }),
+          // For client-side sorting: prefer published time; if upcoming, also provide scheduled time
+          sortTimestamp: isUpcoming ? scheduledStart : published,
           duration: formatDuration(durationIso),
           durationSeconds,
           thumbnail: (video.snippet.thumbnails?.maxres?.url
@@ -212,8 +218,7 @@ router.get('/episodes', async (req, res) => {
         };
       })
       .filter(v => !v.isShort)
-      .sort((a, b) => a.order - b.order)
-      .slice(0, 4);
+      .sort((a, b) => a.order - b.order);
 
     // Mark first item as featured
     episodes = episodes.map((ep, idx) => ({ ...ep, featured: idx === 0 }));
@@ -222,7 +227,7 @@ router.get('/episodes', async (req, res) => {
     episodesCache = episodes;
     cacheTimestamp = Date.now();
 
-    console.log(`Cached ${episodes.length} episodes for 7 days`);
+    console.log(`Cached ${episodes.length} episodes for ${Math.round(CACHE_DURATION/3600000)} hours`);
     res.json(episodes);
 
   } catch (error) {
