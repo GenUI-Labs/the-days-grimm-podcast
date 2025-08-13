@@ -7,7 +7,7 @@ const youtube = google.youtube('v3');
 // Cache configuration
 let episodesCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 const FALLBACK_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 // Helper function to format duration
@@ -36,9 +36,14 @@ const formatDuration = (duration) => {
 // Helper function to check if we need to refresh cache
 const shouldRefreshCache = () => {
   if (!episodesCache || !cacheTimestamp) return true;
-  
   const timeSinceLastCache = Date.now() - cacheTimestamp;
-  return timeSinceLastCache > CACHE_DURATION;
+  if (timeSinceLastCache > CACHE_DURATION) return true;
+  // If any cached upcoming has passed its scheduled time, force refresh early
+  const now = Date.now();
+  const upcomingNowReleased = Array.isArray(episodesCache) && episodesCache.some((ep) => {
+    return ep && ep.isUpcoming && typeof ep.sortTimestamp === 'number' && ep.sortTimestamp > 0 && ep.sortTimestamp <= (now - 5 * 60 * 1000);
+  });
+  return upcomingNowReleased;
 };
 
 // Helper: derive custom name from a YouTube URL (supports /c/Name and /@Handle)
@@ -145,12 +150,13 @@ router.get('/episodes', async (req, res) => {
     const channelId = await resolveChannelId();
 
     // Fetch latest videos (request more to allow filtering out Shorts)
+    // Try both date order and relevance to catch any videos that might be missed
     const searchResponse = await youtube.search.list({
       key: process.env.YOUTUBE_API_KEY,
       channelId: channelId,
       part: 'snippet',
       order: 'date',
-      maxResults: 10, // Request more; we'll filter Shorts and keep enough for UI needs
+      maxResults: 50, // Request significantly more to account for shorts/filtered content
       type: 'video'
     });
 
@@ -170,6 +176,8 @@ router.get('/episodes', async (req, res) => {
     // Map videoId -> order index to preserve search order after filtering
     const orderIndex = new Map(orderedIds.map((id, idx) => [id, idx]));
 
+    console.log(`\n=== YouTube API returned ${videoDetailsResponse.data.items?.length || 0} videos ===`);
+    
     // Transform and filter out Shorts (duration < 60s or title contains #shorts)
     let episodes = (videoDetailsResponse.data.items || [])
       .map((video) => {
@@ -179,11 +187,32 @@ router.get('/episodes', async (req, res) => {
         const isShort = durationSeconds > 0 && durationSeconds < 60;
         const hasShortsTag = /#shorts/i.test(title);
         const liveState = video.snippet?.liveBroadcastContent || 'none';
-        const isUpcoming = liveState === 'upcoming' || durationSeconds === 0;
-        const scheduledStart = (isUpcoming && video.liveStreamingDetails?.scheduledStartTime)
+        const scheduledStart = video.liveStreamingDetails?.scheduledStartTime
           ? new Date(video.liveStreamingDetails.scheduledStartTime).getTime()
           : 0;
-        const published = new Date(video.snippet.publishedAt).getTime();
+        const actualStart = video.liveStreamingDetails?.actualStartTime
+          ? new Date(video.liveStreamingDetails.actualStartTime).getTime()
+          : 0;
+        const nowTs = Date.now();
+        // Upcoming only if explicitly upcoming or scheduled in the future and not actually started yet
+        const isUpcoming = (liveState === 'upcoming') || (scheduledStart > nowTs && !actualStart);
+        const published = new Date(actualStart || video.snippet.publishedAt).getTime();
+        
+        // Debug each video
+        console.log(`\n--- Video: ${title.substring(0, 50)}... ---`);
+        console.log(`ID: ${video.id}`);
+        console.log(`liveBroadcastContent: "${liveState}"`);
+        console.log(`publishedAt: ${video.snippet.publishedAt}`);
+        console.log(`scheduledStartTime: ${video.liveStreamingDetails?.scheduledStartTime || 'null'}`);
+        console.log(`actualStartTime: ${video.liveStreamingDetails?.actualStartTime || 'null'}`);
+        console.log(`durationSeconds: ${durationSeconds}`);
+        console.log(`scheduledStart timestamp: ${scheduledStart}`);
+        console.log(`actualStart timestamp: ${actualStart}`);
+        console.log(`nowTs: ${nowTs}`);
+        console.log(`isShort: ${isShort}`);
+        console.log(`isUpcoming: ${isUpcoming}`);
+        console.log(`will be filtered: ${isShort || hasShortsTag}`);
+        
         return {
           id: video.id,
           order: orderIndex.get(video.id) ?? 9999,
@@ -192,7 +221,7 @@ router.get('/episodes', async (req, res) => {
           description: (video.snippet.description || '').split('\n')[0],
           date: new Date((isUpcoming && video.liveStreamingDetails?.scheduledStartTime)
             ? video.liveStreamingDetails.scheduledStartTime
-            : video.snippet.publishedAt
+            : (video.liveStreamingDetails?.actualStartTime || video.snippet.publishedAt)
           ).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
@@ -218,10 +247,44 @@ router.get('/episodes', async (req, res) => {
         };
       })
       .filter(v => !v.isShort)
-      .sort((a, b) => a.order - b.order);
+      // Sort by actual timestamp to ensure proper chronological order (most recent first)
+      .sort((a, b) => b.sortTimestamp - a.sortTimestamp);
+       
+    console.log(`\n=== After filtering ===`);
+    console.log(`Total episodes after filter: ${episodes.length}`);
+    const upcomingCount = episodes.filter(ep => ep.isUpcoming).length;
+    const recentCount = episodes.filter(ep => !ep.isUpcoming).length;
+    console.log(`Upcoming episodes: ${upcomingCount}`);
+    console.log(`Recent episodes: ${recentCount}`);
+    
+    episodes.forEach((ep, idx) => {
+      const dateStr = new Date(ep.sortTimestamp).toLocaleDateString();
+      console.log(`${idx + 1}. ${ep.title.substring(0, 40)}... | ${dateStr} | isUpcoming: ${ep.isUpcoming}`);
+    });
 
-    // Mark first item as featured
-    episodes = episodes.map((ep, idx) => ({ ...ep, featured: idx === 0 }));
+    // Mark featured episode: prefer the first upcoming, otherwise first recent
+    const upcomingEpisodes = episodes.filter(ep => ep.isUpcoming);
+    const recentEpisodes = episodes.filter(ep => !ep.isUpcoming);
+    
+    if (upcomingEpisodes.length > 0) {
+      // Mark the first upcoming as featured
+      episodes = episodes.map(ep => ({ 
+        ...ep, 
+        featured: ep.isUpcoming && ep.id === upcomingEpisodes[0].id 
+      }));
+      console.log(`Featured upcoming episode: ${upcomingEpisodes[0].title.substring(0, 40)}...`);
+    } else if (recentEpisodes.length > 0) {
+      // No upcoming, mark the first recent as featured
+      episodes = episodes.map(ep => ({ 
+        ...ep, 
+        featured: !ep.isUpcoming && ep.id === recentEpisodes[0].id 
+      }));
+      console.log(`Featured recent episode: ${recentEpisodes[0].title.substring(0, 40)}...`);
+    } else {
+      // Fallback: mark first item as featured
+      episodes = episodes.map((ep, idx) => ({ ...ep, featured: idx === 0 }));
+      console.log('Fallback: marked first episode as featured');
+    }
 
     // Update cache
     episodesCache = episodes;
