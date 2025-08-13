@@ -129,12 +129,12 @@ const Episodes: React.FC = () => {
 
         {/* Latest Episode */}
         {loading && (
-          <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-text-muted">Loading latest episode…</div>
+          <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-text-muted">Loading…</div>
         )}
         {error && (
           <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-red-400">{error}</div>
         )}
-        {upcomingEpisodes.length >= 2 && !loading && !error ? (
+        {upcomingEpisodes.length >= 1 && !loading && !error ? (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
