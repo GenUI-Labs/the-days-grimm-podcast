@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { Play, Youtube, Music, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react'
 import { fetchEpisodes, type Episode } from '../services/episodes'
 
 const Episodes: React.FC = () => {
+  const sectionRef = useRef(null)
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" })
+  
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -119,13 +122,16 @@ const Episodes: React.FC = () => {
   }
 
   return (
-    <section id="episodes" className="section bg-dark">
+    <section id="episodes" className="section bg-dark" ref={sectionRef}>
       <div className="container">
-        <h2
+        <motion.h2
           className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6 }}
         >
           Upcoming
-        </h2>
+        </motion.h2>
 
         {/* Latest Episode */}
         {loading && (
@@ -290,11 +296,14 @@ const Episodes: React.FC = () => {
         ))}
         
         {/* Recent Episodes */}
-        <h3
+        <motion.h3
           className="text-3xl font-bold text-center mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
           Recent Episodes
-        </h3>
+        </motion.h3>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {recentEpisodes.map((episode, index) => (

@@ -1,21 +1,31 @@
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
 import { hosts } from '../data/content'
 
 const Hosts: React.FC = () => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
   return (
-    <section id="hosts" className="section bg-dark-medium">
+    <section id="hosts" className="section bg-dark-medium" ref={ref}>
       <div className="container">
-        <h2
+        <motion.h2
           className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6 }}
         >
           Meet Your Hosts
-        </h2>
+        </motion.h2>
         
           <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {hosts.map((host, index) => (
-              <div
+              <motion.div
                 key={host.name}
                 className="card p-8 flex flex-col items-center text-center"
+                initial={{ opacity: 0, y: 50 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                transition={{ duration: 0.7, delay: 0.2 + index * 0.2 }}
               >
                 <div className="w-32 h-32 rounded-xl overflow-hidden mb-6 mx-auto">
                   <img 
@@ -35,16 +45,21 @@ const Hosts: React.FC = () => {
                     </span>
                   ))}
                 </div>
-            </div>
+            </motion.div>
           ))}
         </div>
         
-          <div className="card p-8 max-w-4xl mx-auto text-center">
+        <motion.div 
+          className="card p-8 max-w-4xl mx-auto text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
           <h3 className="text-2xl font-bold mb-4">Together</h3>
           <p className="text-text-secondary leading-relaxed text-lg">
             Brian and Thomas are passionate about "the come-up story"—how people start, how they fight through adversity, and what keeps them going. Their interviews highlight the raw, the real, and the inspiring—always ending with takeaways that listeners can apply to their own grind.
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

@@ -1,8 +1,11 @@
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { motion, useInView } from 'framer-motion'
+import { useEffect, useState, useRef } from 'react'
 import { fetchRedditBlogPosts, type RedditBlogPost, type RedditBlogResponse } from '../services/blog'
 
 const Blog: React.FC = () => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  
   const [posts, setPosts] = useState<RedditBlogPost[]>([])
   const [debugInfo, setDebugInfo] = useState<RedditBlogResponse['debug']>()
   const [loading, setLoading] = useState<boolean>(true)
@@ -38,13 +41,16 @@ const Blog: React.FC = () => {
   }, [debugInfo])
 
   return (
-    <section id="blog" className="section bg-dark-medium">
+    <section id="blog" className="section bg-dark-medium" ref={ref}>
       <div className="container">
-        <h2
+        <motion.h2
           className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6 }}
         >
           Blog
-        </h2>
+        </motion.h2>
 
         {loading && (
           <div className="card p-8 max-w-2xl mx-auto text-center text-text-muted">Loading blog posts…</div>
@@ -56,10 +62,13 @@ const Blog: React.FC = () => {
         {posts.length > 0 ? (
           <>
           <div className="grid md:grid-cols-2 gap-8">
-            {posts.slice(0, visibleCount).map((post) => (
-                <div
+            {posts.slice(0, visibleCount).map((post, index) => (
+                <motion.div
                 key={post.id}
                 className="card overflow-hidden flex flex-col"
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
               >
                 {post.thumbnail ? (
                   <div className="h-48 bg-dark-lighter flex items-center justify-center overflow-hidden">
@@ -90,7 +99,7 @@ const Blog: React.FC = () => {
                     </a>
                   </div>
                 </div>
-               </div>
+               </motion.div>
             ))}
           </div>
           {posts.length > visibleCount && (
