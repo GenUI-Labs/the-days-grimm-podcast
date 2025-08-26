@@ -124,22 +124,29 @@ const Episodes: React.FC = () => {
   return (
     <section id="episodes" className="section bg-dark" ref={sectionRef}>
       <div className="container">
-        <motion.h2
-          className="text-4xl font-bold text-center mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.6 }}
-        >
-          Upcoming
-        </motion.h2>
+        {/* Only show Upcoming section if there are upcoming episodes or still loading */}
+        {(upcomingEpisodes.length > 0 || loading || error) && (
+          <>
+            <motion.h2
+              className="text-4xl font-bold text-center mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6 }}
+            >
+              Upcoming
+            </motion.h2>
 
-        {/* Latest Episode */}
-        {loading && (
-          <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-text-muted">Loading…</div>
+            {/* Loading/Error States */}
+            {loading && (
+              <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-text-muted">Loading…</div>
+            )}
+            {error && (
+              <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-red-400">{error}</div>
+            )}
+          </>
         )}
-        {error && (
-          <div className="card p-8 max-w-4xl mx-auto mb-16 text-center text-red-400">{error}</div>
-        )}
+
+        {/* Upcoming Episodes Content */}
         {upcomingEpisodes.length >= 1 && !loading && !error ? (
           <motion.div
             initial={{ opacity: 0 }}
