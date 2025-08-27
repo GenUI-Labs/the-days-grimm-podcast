@@ -12,8 +12,7 @@
     "preview": "vite preview",
     "preview:prod": "vite preview --config vite.config.prod.ts",
     "analyze": "npx vite-bundle-analyzer dist",
-    "lighthouse": "lhci autorun",
-    "optimize-images": "node scripts/optimize-images.js"
+    "lighthouse": "lhci autorun"
   },
   "dependencies": {
     "framer-motion": "^12.23.12",

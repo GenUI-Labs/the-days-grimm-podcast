@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 
 // Components
 import Navigation from '../components/Navigation'
-import Footer from '../components/Footer'
 
 // Sections
 import Hero from '../sections/Hero'
@@ -64,9 +63,6 @@ const Home: React.FC = () => {
 
       {/* Contact Section */}
       <Contact />
-
-      {/* Footer */}
-      <Footer scrollToSection={scrollToSection} />
     </div>
   )
 }

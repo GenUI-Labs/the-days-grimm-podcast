@@ -18,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ scrollToSection }) => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navItems = ['home', 'about', 'hosts', 'episodes', 'blog', 'contact', 'merch']
+  const navItems = ['home', 'about', 'hosts', 'episodes', 'blog', 'contact']
 
   return (
     <nav className={`fixed top-0 w-full z-40 transition-all duration-300 ${
@@ -34,21 +34,12 @@ const Navigation: React.FC<NavigationProps> = ({ scrollToSection }) => {
           <ul className="hidden md:flex space-x-8">
             {navItems.map((item) => (
               <li key={item}>
-                {item === 'merch' ? (
-                  <a
-                    href="/merch"
-                    className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize"
-                  >
-                    {item}
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => scrollToSection(item)}
-                    className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize"
-                  >
-                    {item}
-                  </button>
-                )}
+                <button
+                  onClick={() => scrollToSection(item)}
+                  className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize"
+                >
+                  {item}
+                </button>
               </li>
             ))}
           </ul>
@@ -73,21 +64,12 @@ const Navigation: React.FC<NavigationProps> = ({ scrollToSection }) => {
             <ul className="space-y-4">
               {navItems.map((item) => (
                 <li key={item}>
-                  {item === 'merch' ? (
-                    <a
-                      href="/merch"
-                      className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize block w-full text-left"
-                    >
-                      {item}
-                    </a>
-                  ) : (
-                    <button
-                      onClick={() => { scrollToSection(item); setIsMenuOpen(false); }}
-                      className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize block w-full text-left"
-                    >
-                      {item}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { scrollToSection(item); setIsMenuOpen(false); }}
+                    className="text-text-primary hover:text-primary transition-colors duration-300 font-medium capitalize block w-full text-left"
+                  >
+                    {item}
+                  </button>
                 </li>
               ))}
             </ul>

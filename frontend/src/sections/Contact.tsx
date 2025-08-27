@@ -1,51 +1,145 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Youtube, Music, Smartphone, Instagram, Facebook, Twitter } from 'lucide-react'
+import { Youtube, Music, Smartphone, Instagram, Facebook, MessageSquare } from 'lucide-react'
+
+// Custom X (Twitter) Icon Component
+const XIcon = ({ size = 24, className = "" }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    className={className}
+  >
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+)
 
 const Contact: React.FC = () => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
   
-  const socialLinks = [
+  // Organized into categories
+  const listenLinks = [
     { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/c/TheDaysGrimm' },
     { icon: Music, label: 'Spotify', href: 'https://open.spotify.com/show/3JLH1IVdjohOrAOoXTsk18' },
-    { icon: Smartphone, label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-days-grimm-podcast/id1545803797' },
+    { icon: Smartphone, label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-days-grimm-podcast/id1545803797' }
+  ]
+
+  const socialLinks = [
     { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/thedaysgrimmpodcast/' },
     { icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/thedaysgrimm/' },
-    { icon: Twitter, label: 'X (Twitter)', href: 'https://twitter.com/thedaysgrimm' }
+    { icon: XIcon, label: 'X', href: 'https://twitter.com/thedaysgrimm' }
+  ]
+
+  const contactLinks = [
+    { icon: MessageSquare, label: 'Join Our Discord', href: 'https://discord.gg/thedaysgrimm' }
   ]
 
   return (
-    <section id="contact" className="section bg-dark" ref={ref}>
+    <footer id="contact" className="bg-dark border-t border-dark-border py-12" ref={ref}>
       <div className="container">
-        <motion.h2
-          className="text-4xl font-bold text-center mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.6 }}
-        >
-          Connect With Us
-        </motion.h2>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto text-center">
-          {socialLinks.map((social, index) => (
-            <motion.a
-              key={social.label}
-              href={social.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-6 flex items-center justify-center gap-3 sm:gap-4 h-16 sm:h-20 hover:scale-105 transition-transform"
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-            >
-              <social.icon size={24} className="text-primary" />
-              <span className="font-medium">{social.label}</span>
-            </motion.a>
-          ))}
+        <div className="grid md:grid-cols-4 gap-8 mb-8 text-center md:text-left">
+          {/* Brand Section */}
+          <motion.div
+            className="flex flex-col items-center md:items-start"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h3 className="text-xl font-bold mb-4 gradient-text">The Days Grimm</h3>
+            <p className="text-text-secondary leading-relaxed">
+              Exploring the darker side of life, one episode at a time.
+            </p>
+          </motion.div>
+
+          {/* Watch & Listen Section */}
+          <motion.div
+            className="flex flex-col items-center md:items-start"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <h4 className="text-lg font-semibold mb-4 gradient-text">Listen On</h4>
+            <ul className="space-y-2">
+              {listenLinks.map((link, index) => (
+                <li key={link.label}>
+                  <a 
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <link.icon size={18} />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Social Media Section */}
+          <motion.div
+            className="flex flex-col items-center md:items-start"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <h4 className="text-lg font-semibold mb-4 gradient-text">Follow Us</h4>
+            <ul className="space-y-2">
+              {socialLinks.map((link, index) => (
+                <li key={link.label}>
+                  <a 
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <link.icon size={18} />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Contact Section */}
+          <motion.div
+            className="flex flex-col items-center md:items-start"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <h4 className="text-lg font-semibold mb-4 gradient-text">Get In Touch</h4>
+            <ul className="space-y-2">
+              {contactLinks.map((link, index) => (
+                <li key={link.label}>
+                  <a 
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <link.icon size={18} />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
         </div>
+
+        {/* Footer Copyright */}
+        <motion.div
+          className="text-center pt-8 border-t border-dark-border text-text-muted"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <p>&copy; 2025 The Days Grimm Podcast. All rights reserved.</p>
+        </motion.div>
       </div>
-    </section>
+    </footer>
   )
 }
 
