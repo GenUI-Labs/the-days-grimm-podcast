@@ -22,7 +22,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.18.2",
-    "googleapis": "^155.0.0"
+    "googleapis": "^157.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
