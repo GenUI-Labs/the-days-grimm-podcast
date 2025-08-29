@@ -94,7 +94,15 @@ router.get('/reddit', async (req, res) => {
 
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'TheDaysGrimmSite/1.0 (+contact@thedaysgrimm.com)'
+        'User-Agent': 'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      },
+      timeout: 10000,
+      validateStatus: function (status) {
+        return status < 500; // Resolve only if status is less than 500
       }
     });
 
@@ -153,10 +161,26 @@ router.get('/reddit', async (req, res) => {
   } catch (error) {
     const status = error?.response?.status || 500;
     const data = error?.response?.data || { message: error.message };
-    console.error('Reddit fetch error:', data);
+    
+    // Enhanced error logging for debugging
+    console.error('Reddit API Error Details:', {
+      status: status,
+      url: error?.config?.url || 'unknown',
+      responseType: typeof data,
+      isHTML: typeof data === 'string' && data.includes('<html'),
+      errorMessage: error.message,
+      subreddit: process.env.REDDIT_SUBREDDIT,
+      requiredFlair: process.env.REDDIT_REQUIRED_FLAIR
+    });
+    
     res.status(status).json({
       error: 'Failed to fetch posts from Reddit',
-      message: data?.message || error.message,
+      message: status === 403 ? 'Reddit blocked the request (403 Forbidden)' : (data?.message || error.message),
+      debug: {
+        status,
+        subreddit: process.env.REDDIT_SUBREDDIT?.replace(/^\/?r\//i, '').trim(),
+        isHTMLResponse: typeof data === 'string' && data.includes('<html')
+      },
       posts: []
     });
   }
