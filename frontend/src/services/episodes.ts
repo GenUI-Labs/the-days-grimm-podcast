@@ -20,7 +20,8 @@ export interface EpisodesResponse {
 
 export const fetchEpisodes = async (): Promise<Episode[]> => {
   try {
-    const response = await fetch('/api/episodes', {
+    const apiBase = import.meta.env.PROD ? 'https://the-days-grimm-podcast.onrender.com' : '';
+    const response = await fetch(`${apiBase}/api/episodes`, {
       headers: { 'Cache-Control': 'no-cache' }
     });
     
@@ -38,7 +39,8 @@ export const fetchEpisodes = async (): Promise<Episode[]> => {
 
 export const fetchEpisodesHealth = async () => {
   try {
-    const response = await fetch('/api/episodes/health', {
+    const apiBase = import.meta.env.PROD ? 'https://the-days-grimm-podcast.onrender.com' : '';
+    const response = await fetch(`${apiBase}/api/episodes/health`, {
       headers: { 'Cache-Control': 'no-cache' }
     });
     
