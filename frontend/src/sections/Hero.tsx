@@ -17,7 +17,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         loop
         muted
         playsInline
-        poster="/hero-poster.jpg"
+        poster="/og-image.jpg"
       />
 
       {/* Mobile background video */}
@@ -28,7 +28,7 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         loop
         muted
         playsInline
-        poster="/hero-poster.jpg"
+        poster="/og-image.jpg"
       />
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
