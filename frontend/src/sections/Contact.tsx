@@ -39,7 +39,7 @@ const Contact: React.FC = () => {
   return (
     <footer id="contact" className="bg-dark border-t border-dark-border py-12" ref={ref}>
       <div className="container">
-        <div className="grid md:grid-cols-4 gap-8 mb-8 text-center md:text-left">
+        <div className="grid md:grid-cols-4 gap-8 mb-8 text-center md:text-left max-w-4xl mx-auto md:max-w-none">
           {/* Brand Section */}
           <motion.div
             className="flex flex-col items-center md:items-start"
