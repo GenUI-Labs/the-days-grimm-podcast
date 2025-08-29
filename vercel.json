@@ -1,24 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm run install:all",
-  "framework": null,
-  "functions": {
-    "backend/server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -58,6 +39,5 @@
         }
       ]
     }
-  ],
-  "redirects": []
+  ]
 }
