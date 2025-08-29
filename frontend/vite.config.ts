@@ -7,7 +7,6 @@ const isNetlifyDev = !!process.env.NETLIFY_DEV || process.env.NETLIFY === 'true'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const backendPort = env.VITE_BACKEND_PORT || '5000'
-  
   return {
     plugins: [react()],
     server: {
@@ -24,19 +23,6 @@ export default defineConfig(({ mode }) => {
           secure: false
         }
       }
-    },
-    // Production build configuration
-    build: {
-      rollupOptions: {
-        // Ensure API calls are made to production backend
-        external: mode === 'production' ? [] : undefined
-      }
-    },
-    // Define global constants
-    define: {
-      __API_BASE_URL__: mode === 'production' 
-        ? '"https://the-days-grimm-podcast.onrender.com"' 
-        : '""'
     }
   }
 })

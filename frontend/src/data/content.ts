@@ -1,12 +1,10 @@
 import React from 'react'
 import { 
-  Play, 
   Youtube, 
   Instagram, 
   Facebook, 
   Music, 
   Smartphone,
-  Mic,
   User,
   Camera,
   Ghost,

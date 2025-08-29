@@ -13,8 +13,8 @@ import Blog from '../sections/Blog'
 import Contact from '../sections/Contact'
 
 const Home: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const [scrolled, setScrolled] = useState<boolean>(false)
+  const [, setIsMenuOpen] = useState<boolean>(false)
+  const [, setScrolled] = useState<boolean>(false)
   const { scrollYProgress } = useScroll()
   // Map scroll progress (0 → 1) to width (0% → 100%) as a MotionValue string
   const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])

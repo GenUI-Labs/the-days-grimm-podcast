@@ -62,7 +62,7 @@ const Contact: React.FC = () => {
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Listen On</h4>
             <ul className="space-y-2">
-              {listenLinks.map((link, index) => (
+              {listenLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
@@ -87,7 +87,7 @@ const Contact: React.FC = () => {
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Follow Us</h4>
             <ul className="space-y-2">
-              {socialLinks.map((link, index) => (
+              {socialLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
@@ -112,7 +112,7 @@ const Contact: React.FC = () => {
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Get In Touch</h4>
             <ul className="space-y-2">
-              {contactLinks.map((link, index) => (
+              {contactLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
