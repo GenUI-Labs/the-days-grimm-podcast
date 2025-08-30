@@ -7,10 +7,10 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
-  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [allContentReady, setAllContentReady] = useState(false)
 
   useEffect(() => {
-    // Preload videos
+    // Preload videos and wait a minimum time for smooth experience
     const video1 = document.createElement('video')
     const video2 = document.createElement('video')
     
@@ -18,11 +18,22 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
     video2.src = '/hero-mobile.mp4'
     
     let loadedCount = 0
+    const minimumLoadTime = 800 // Minimum 800ms for smooth experience
+    const startTime = Date.now()
+    
+    const checkIfReady = () => {
+      const timeElapsed = Date.now() - startTime
+      if (loadedCount >= 2 && timeElapsed >= minimumLoadTime) {
+        setAllContentReady(true)
+      } else if (loadedCount >= 2) {
+        // Videos loaded but not enough time passed - wait remaining time
+        setTimeout(() => setAllContentReady(true), minimumLoadTime - timeElapsed)
+      }
+    }
+    
     const handleLoad = () => {
       loadedCount++
-      if (loadedCount === 2) {
-        setVideoLoaded(true)
-      }
+      checkIfReady()
     }
     
     video1.addEventListener('loadeddata', handleLoad)
@@ -31,47 +42,53 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
     video1.load()
     video2.load()
     
+    // Fallback timeout in case videos take too long
+    const fallbackTimeout = setTimeout(() => {
+      setAllContentReady(true)
+    }, 5000)
+    
     return () => {
       video1.removeEventListener('loadeddata', handleLoad)
       video2.removeEventListener('loadeddata', handleLoad)
+      clearTimeout(fallbackTimeout)
     }
   }, [])
 
+  // Show nothing until everything is ready
+  if (!allContentReady) {
+    return (
+      <section id="home" className="relative min-h-[80vh] sm:min-h-screen flex items-center bg-dark pt-16 sm:pt-20 overflow-hidden">
+        {/* Just dark background while loading */}
+        <div className="absolute inset-0 bg-dark" />
+      </section>
+    )
+  }
+
   return (
     <section id="home" className="relative min-h-[80vh] sm:min-h-screen flex items-center bg-dark pt-16 sm:pt-20 overflow-hidden">
-      {/* Background video - only show when loaded */}
-      {videoLoaded && (
-        <>
-          {/* Desktop/Tablet background video */}
-          <video
-            className="absolute inset-0 w-full h-full object-cover hidden sm:block"
-            src="/hero.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="/og-image.jpg"
-          />
+      {/* Background videos - show immediately when ready */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover hidden sm:block"
+        src="/hero.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster="/og-image.jpg"
+      />
 
-          {/* Mobile background video */}
-          <video
-            className="absolute inset-0 w-full h-full object-cover sm:hidden pointer-events-none"
-            src="/hero-mobile.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="/og-image.jpg"
-          />
-        </>
-      )}
+      <video
+        className="absolute inset-0 w-full h-full object-cover sm:hidden pointer-events-none"
+        src="/hero-mobile.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster="/og-image.jpg"
+      />
       
-      {/* Loading background while video loads */}
-      {!videoLoaded && (
-        <div className="absolute inset-0 bg-dark" />
-      )}
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 

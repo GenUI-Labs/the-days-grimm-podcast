@@ -95,6 +95,7 @@ const parseRedditRSS = (xmlData) => {
 // Hybrid approach: tries RSS first, falls back to JSON API
 // Returns a simplified, safe JSON payload for the frontend.
 router.get('/reddit', async (req, res) => {
+  console.log('🔍 [REDDIT API] Starting request...');
   try {
     const rawSubreddit = process.env.REDDIT_SUBREDDIT || '';
     const subreddit = rawSubreddit.replace(/^\/?r\//i, '').trim();
@@ -102,19 +103,36 @@ router.get('/reddit', async (req, res) => {
     const envAuthor = process.env.REDDIT_ALLOWED_AUTHOR || '';
     const limit = Math.min(parseInt(req.query.limit, 10) || 6, 25);
 
+    console.log('📋 [REDDIT API] Configuration:', {
+      rawSubreddit,
+      subreddit,
+      envFlair,
+      envAuthor,
+      limit
+    });
+
     // Allow query overrides for debugging/config without redeploying
     const requiredFlair = typeof req.query.flair === 'string' ? req.query.flair : envFlair;
     const allowedAuthor = typeof req.query.author === 'string' ? req.query.author : envAuthor;
     const debug = String(req.query.debug || '0') === '1';
+    
+    console.log('🔧 [REDDIT API] Final parameters:', {
+      requiredFlair,
+      allowedAuthor,
+      debug,
+      query: req.query
+    });
     // Cache key includes config inputs that affect results
     const cacheKey = JSON.stringify({ subreddit, requiredFlair, allowedAuthor, limit });
     const cached = redditCache.get(cacheKey);
     if (cached && (Date.now() - cached.ts) < BLOG_CACHE_TTL) {
+      console.log('💾 [REDDIT API] Serving from cache');
       res.set('Cache-Control', `public, max-age=${Math.floor(BLOG_CACHE_TTL / 1000)}`);
       return res.json(cached.payload);
     }
 
     if (!subreddit) {
+      console.log('❌ [REDDIT API] Missing subreddit configuration');
       return res.status(400).json({
         error: 'Missing configuration',
         message: 'REDDIT_SUBREDDIT is not configured on the server',
@@ -122,11 +140,14 @@ router.get('/reddit', async (req, res) => {
       });
     }
 
+    console.log('🚀 [REDDIT API] Proceeding with fresh request for subreddit:', subreddit);
+
     let posts = [];
     let apiMethod = 'unknown';
 
     // Try RSS first (more reliable in production)
     try {
+      console.log('📡 [REDDIT API] Attempting RSS method...');
       let rssUrl;
       if (requiredFlair) {
         const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
@@ -134,6 +155,8 @@ router.get('/reddit', async (req, res) => {
       } else {
         rssUrl = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
       }
+      
+      console.log('🔗 [REDDIT API] RSS URL:', rssUrl);
 
       const rssResponse = await axios.get(rssUrl, {
         headers: {
@@ -146,7 +169,16 @@ router.get('/reddit', async (req, res) => {
         validateStatus: (status) => status < 500
       });
 
+      console.log('📥 [REDDIT API] RSS Response:', {
+        status: rssResponse.status,
+        statusText: rssResponse.statusText,
+        contentType: rssResponse.headers['content-type'],
+        dataLength: rssResponse.data?.length || 0,
+        dataPreview: rssResponse.data?.substring(0, 200) + '...'
+      });
+
       const allPosts = await parseRedditRSS(rssResponse.data);
+      console.log('🔍 [REDDIT API] RSS parsed posts:', allPosts.length);
       
       // Filter by author if specified
       let filteredPosts = allPosts;
@@ -154,12 +186,17 @@ router.get('/reddit', async (req, res) => {
         filteredPosts = allPosts.filter(post => 
           String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
         );
+        console.log('👤 [REDDIT API] After author filter:', filteredPosts.length, 'posts');
       }
       
       posts = filteredPosts.slice(0, limit);
       apiMethod = 'RSS';
+      console.log('✅ [REDDIT API] RSS Success! Final posts:', posts.length);
       
     } catch (rssError) {
+      console.log('❌ [REDDIT API] RSS failed:', rssError.message);
+      console.log('🔄 [REDDIT API] Attempting JSON fallback...');
+      
       // RSS failed, try JSON API as fallback
       try {
         let jsonUrl;
@@ -169,19 +206,59 @@ router.get('/reddit', async (req, res) => {
         } else {
           jsonUrl = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
         }
+        
+        console.log('🔗 [REDDIT API] JSON URL:', jsonUrl);
 
-        const jsonResponse = await axios.get(jsonUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
-            'Accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache'
-          },
-          timeout: 10000,
-          validateStatus: (status) => status < 500
+        // Try multiple user agents as Reddit blocks some
+        const userAgents = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+        ];
+        
+        let jsonResponse;
+        let userAgentIndex = 0;
+        
+        while (userAgentIndex < userAgents.length) {
+          try {
+            console.log(`🤖 [REDDIT API] Trying user agent ${userAgentIndex + 1}/${userAgents.length}`);
+            
+            jsonResponse = await axios.get(jsonUrl, {
+              headers: {
+                'User-Agent': userAgents[userAgentIndex],
+                'Accept': 'application/json, text/html, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'DNT': '1',
+                'Upgrade-Insecure-Requests': '1'
+              },
+              timeout: 15000,
+              maxRedirects: 5,
+              validateStatus: (status) => status < 500
+            });
+            
+            console.log(`✅ [REDDIT API] User agent ${userAgentIndex + 1} worked!`);
+            break;
+          } catch (uaError) {
+            console.log(`❌ [REDDIT API] User agent ${userAgentIndex + 1} failed:`, uaError.message);
+            userAgentIndex++;
+            if (userAgentIndex >= userAgents.length) {
+              throw uaError;
+            }
+          }
+        }
+
+        console.log('📥 [REDDIT API] JSON Response:', {
+          status: jsonResponse.status,
+          statusText: jsonResponse.statusText,
+          contentType: jsonResponse.headers['content-type'],
+          hasData: !!jsonResponse.data,
+          dataKeys: jsonResponse.data ? Object.keys(jsonResponse.data) : []
         });
 
         const children = jsonResponse?.data?.data?.children || [];
+        console.log('👶 [REDDIT API] JSON children found:', children.length);
         
         const afterFlair = children
           .map((child) => child.data)
@@ -189,15 +266,24 @@ router.get('/reddit', async (req, res) => {
           .filter((d) => {
             // Flair filtering
             const flairName = d.link_flair_text || d.author_flair_text || '';
-            if (requiredFlair && !String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase())) {
-              return false;
-            }
+            const flairMatch = !requiredFlair || String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase());
+            
             // Author filtering
-            if (allowedAuthor && String(d.author).toLowerCase() !== String(allowedAuthor).toLowerCase()) {
-              return false;
-            }
-            return true;
+            const authorMatch = !allowedAuthor || String(d.author).toLowerCase() === String(allowedAuthor).toLowerCase();
+            
+            console.log('🔍 [REDDIT API] Post filter check:', {
+              title: d.title?.substring(0, 30) + '...',
+              author: d.author,
+              flair: flairName,
+              flairMatch,
+              authorMatch,
+              passes: flairMatch && authorMatch
+            });
+            
+            return flairMatch && authorMatch;
           });
+
+        console.log('🎯 [REDDIT API] After filtering:', afterFlair.length, 'posts');
 
         posts = afterFlair
           .map((d) => ({
@@ -213,13 +299,57 @@ router.get('/reddit', async (req, res) => {
           .slice(0, limit);
           
         apiMethod = 'JSON';
+        console.log('✅ [REDDIT API] JSON Success! Final posts:', posts.length);
         
       } catch (jsonError) {
-        throw new Error(`Both RSS and JSON failed. RSS: ${rssError.message}, JSON: ${jsonError.message}`);
+        console.log('❌ [REDDIT API] JSON also failed:', jsonError.message);
+        console.log('🔄 [REDDIT API] Trying direct RSS without flair as final fallback...');
+        
+        // Final fallback: Direct RSS without any filtering
+        try {
+          const fallbackUrl = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
+          console.log('🔗 [REDDIT API] Fallback RSS URL:', fallbackUrl);
+          
+          const fallbackResponse = await axios.get(fallbackUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+              'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+              'Accept-Language': 'en-US,en;q=0.9'
+            },
+            timeout: 20000,
+            validateStatus: (status) => status < 500
+          });
+          
+          console.log('📥 [REDDIT API] Fallback RSS Response:', {
+            status: fallbackResponse.status,
+            contentLength: fallbackResponse.data?.length || 0
+          });
+          
+          const allFallbackPosts = await parseRedditRSS(fallbackResponse.data);
+          console.log('🔍 [REDDIT API] Fallback RSS parsed posts:', allFallbackPosts.length);
+          
+          // Apply client-side filtering
+          let filteredFallbackPosts = allFallbackPosts;
+          if (allowedAuthor) {
+            filteredFallbackPosts = allFallbackPosts.filter(post => 
+              String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
+            );
+            console.log('👤 [REDDIT API] Fallback after author filter:', filteredFallbackPosts.length, 'posts');
+          }
+          
+          posts = filteredFallbackPosts.slice(0, limit);
+          apiMethod = 'RSS-Fallback';
+          console.log('✅ [REDDIT API] Fallback RSS Success! Final posts:', posts.length);
+          
+        } catch (fallbackError) {
+          console.log('❌ [REDDIT API] Fallback RSS also failed:', fallbackError.message);
+          console.log('💥 [REDDIT API] ALL METHODS FAILED');
+          throw new Error(`All methods failed. RSS: ${rssError.message}, JSON: ${jsonError.message}, Fallback: ${fallbackError.message}`);
+        }
       }
     }
 
-    const payload = {
+        const payload = {
       posts,
       debug: debug ? {
         request: { subreddit, requiredFlair, allowedAuthor, limit },
@@ -233,32 +363,43 @@ router.get('/reddit', async (req, res) => {
       } : undefined
     };
 
+    console.log('📤 [REDDIT API] Final payload:', {
+      postsCount: posts.length,
+      method: apiMethod,
+      cached: false,
+      timestamp: new Date().toISOString()
+    });
+
     // Store in cache and set cache headers
     redditCache.set(cacheKey, { ts: Date.now(), payload });
     res.set('Cache-Control', `public, max-age=${Math.floor(BLOG_CACHE_TTL / 1000)}`);
+    console.log('✅ [REDDIT API] Request completed successfully');
     res.json(payload);
   } catch (error) {
     const status = error?.response?.status || 500;
     const data = error?.response?.data || { message: error.message };
-    
+
     // Enhanced error logging for debugging
-    console.error('Reddit API Error Details:', {
+    console.error('💀 [REDDIT API] FATAL ERROR:', {
       status: status,
       url: error?.config?.url || 'unknown',
       responseType: typeof data,
       isHTML: typeof data === 'string' && data.includes('<html'),
       errorMessage: error.message,
+      errorStack: error.stack,
       subreddit: process.env.REDDIT_SUBREDDIT,
-      requiredFlair: process.env.REDDIT_REQUIRED_FLAIR
+      requiredFlair: process.env.REDDIT_REQUIRED_FLAIR,
+      fullError: error
     });
-    
+
     res.status(status).json({
       error: 'Failed to fetch posts from Reddit',
       message: status === 403 ? 'Reddit blocked the request (403 Forbidden)' : (data?.message || error.message),
       debug: {
         status,
         subreddit: process.env.REDDIT_SUBREDDIT?.replace(/^\/?r\//i, '').trim(),
-        isHTMLResponse: typeof data === 'string' && data.includes('<html')
+        isHTMLResponse: typeof data === 'string' && data.includes('<html'),
+        timestamp: new Date().toISOString()
       },
       posts: []
     });
