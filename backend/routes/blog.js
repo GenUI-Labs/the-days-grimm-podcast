@@ -14,6 +14,59 @@ const normalizeUsername = (username) => {
   return String(username).replace(/^\/u\//i, '').toLowerCase();
 };
 
+// Utility: safely enhance RSS posts with thumbnails from JSON API
+const enhanceWithThumbnails = async (posts, subreddit) => {
+  if (!posts || posts.length === 0) return posts;
+  
+  try {
+    console.log('🖼️ [THUMBNAIL] Attempting to enhance', posts.length, 'posts with thumbnails...');
+    
+    // Get JSON data for the subreddit 
+    const jsonUrl = `https://www.reddit.com/r/${subreddit}/new.json?limit=25`;
+    
+    const jsonResponse = await axios.get(jsonUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      timeout: 5000, // Quick timeout - this is just for thumbnails
+      validateStatus: (status) => status < 500
+    });
+    
+    const jsonPosts = jsonResponse?.data?.data?.children || [];
+    console.log('🖼️ [THUMBNAIL] Found', jsonPosts.length, 'JSON posts for thumbnail matching');
+    
+    // Create a map of post ID to thumbnail
+    const thumbnailMap = {};
+    jsonPosts.forEach(child => {
+      if (child?.data?.id) {
+        const thumbnail = pickBestThumbnail(child.data);
+        if (thumbnail) {
+          thumbnailMap[child.data.id] = thumbnail;
+        }
+      }
+    });
+    
+    console.log('🖼️ [THUMBNAIL] Created thumbnail map with', Object.keys(thumbnailMap).length, 'thumbnails');
+    
+    // Enhance posts with thumbnails
+    const enhancedPosts = posts.map(post => ({
+      ...post,
+      thumbnail: thumbnailMap[post.id] || post.thumbnail || null
+    }));
+    
+    const withThumbnails = enhancedPosts.filter(p => p.thumbnail).length;
+    console.log('🖼️ [THUMBNAIL] Enhanced', withThumbnails, '/', posts.length, 'posts with thumbnails');
+    
+    return enhancedPosts;
+    
+  } catch (error) {
+    console.log('⚠️ [THUMBNAIL] Enhancement failed, using RSS posts as-is:', error.message);
+    return posts; // Return original posts if thumbnail enhancement fails
+  }
+};
+
 // Utility: pick the best available thumbnail from a Reddit post payload
 const pickBestThumbnail = (d) => {
   const unescape = (u) => (typeof u === 'string' ? u.replace(/&amp;/g, '&') : u);
@@ -196,6 +249,10 @@ router.get('/reddit', async (req, res) => {
       }
       
       posts = filteredPosts.slice(0, limit);
+      
+      // Safely enhance with thumbnails from JSON API (non-breaking)
+      posts = await enhanceWithThumbnails(posts, subreddit);
+      
       apiMethod = 'RSS';
       console.log('✅ [REDDIT API] RSS Success! Final posts:', posts.length);
       
@@ -344,6 +401,10 @@ router.get('/reddit', async (req, res) => {
           }
           
           posts = filteredFallbackPosts.slice(0, limit);
+          
+          // Safely enhance with thumbnails from JSON API (non-breaking)
+          posts = await enhanceWithThumbnails(posts, subreddit);
+          
           apiMethod = 'RSS-Fallback';
           console.log('✅ [REDDIT API] Fallback RSS Success! Final posts:', posts.length);
           
