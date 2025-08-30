@@ -151,164 +151,164 @@ router.get('/reddit', async (req, res) => {
     let posts = [];
     let apiMethod = 'unknown';
 
-    // Try RSS first (more reliable in production)
+    // Try JSON API first (better thumbnail support)
     try {
-      console.log('📡 [REDDIT API] Attempting RSS method...');
-      let rssUrl;
+      console.log('📡 [REDDIT API] Attempting JSON method for better thumbnails...');
+      let jsonUrl;
       if (requiredFlair) {
-        const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
-        rssUrl = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
+        const encodedFlair = encodeURIComponent(`flair_name:"${requiredFlair}"`);
+        jsonUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
       } else {
-        rssUrl = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
+        jsonUrl = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
       }
       
-      console.log('🔗 [REDDIT API] RSS URL:', rssUrl);
+      console.log('🔗 [REDDIT API] JSON URL:', jsonUrl);
 
-      const rssResponse = await axios.get(rssUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-          'Accept': 'application/rss+xml, application/xml, text/xml',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Cache-Control': 'no-cache'
-        },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-      });
-
-      console.log('📥 [REDDIT API] RSS Response:', {
-        status: rssResponse.status,
-        statusText: rssResponse.statusText,
-        contentType: rssResponse.headers['content-type'],
-        dataLength: rssResponse.data?.length || 0,
-        dataPreview: rssResponse.data?.substring(0, 200) + '...'
-      });
-
-      const allPosts = await parseRedditRSS(rssResponse.data);
-      console.log('🔍 [REDDIT API] RSS parsed posts:', allPosts.length);
+      // Try multiple user agents as Reddit blocks some
+      const userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+      ];
       
-      // Filter by author if specified
-      let filteredPosts = allPosts;
-      if (allowedAuthor) {
-        filteredPosts = allPosts.filter(post => 
-          normalizeUsername(post.author) === normalizeUsername(allowedAuthor)
-        );
-        console.log('👤 [REDDIT API] After author filter:', filteredPosts.length, 'posts');
-      }
+      let jsonResponse;
+      let userAgentIndex = 0;
       
-      posts = filteredPosts.slice(0, limit);
-      apiMethod = 'RSS';
-      console.log('✅ [REDDIT API] RSS Success! Final posts:', posts.length);
-      
-    } catch (rssError) {
-      console.log('❌ [REDDIT API] RSS failed:', rssError.message);
-      console.log('🔄 [REDDIT API] Attempting JSON fallback...');
-      
-      // RSS failed, try JSON API as fallback
-      try {
-        let jsonUrl;
-        if (requiredFlair) {
-          const encodedFlair = encodeURIComponent(`flair_name:"${requiredFlair}"`);
-          jsonUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
-        } else {
-          jsonUrl = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
-        }
-        
-        console.log('🔗 [REDDIT API] JSON URL:', jsonUrl);
-
-        // Try multiple user agents as Reddit blocks some
-        const userAgents = [
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-          'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-        ];
-        
-        let jsonResponse;
-        let userAgentIndex = 0;
-        
-        while (userAgentIndex < userAgents.length) {
-          try {
-            console.log(`🤖 [REDDIT API] Trying user agent ${userAgentIndex + 1}/${userAgents.length}`);
-            
-            jsonResponse = await axios.get(jsonUrl, {
-              headers: {
-                'User-Agent': userAgents[userAgentIndex],
-                'Accept': 'application/json, text/html, */*',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-                'DNT': '1',
-                'Upgrade-Insecure-Requests': '1'
-              },
-              timeout: 15000,
-              maxRedirects: 5,
-              validateStatus: (status) => status < 500
-            });
-            
-            console.log(`✅ [REDDIT API] User agent ${userAgentIndex + 1} worked!`);
-            break;
-          } catch (uaError) {
-            console.log(`❌ [REDDIT API] User agent ${userAgentIndex + 1} failed:`, uaError.message);
-            userAgentIndex++;
-            if (userAgentIndex >= userAgents.length) {
-              throw uaError;
-            }
+      while (userAgentIndex < userAgents.length) {
+        try {
+          console.log(`🤖 [REDDIT API] Trying user agent ${userAgentIndex + 1}/${userAgents.length}`);
+          
+          jsonResponse = await axios.get(jsonUrl, {
+            headers: {
+              'User-Agent': userAgents[userAgentIndex],
+              'Accept': 'application/json, text/html, */*',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'DNT': '1',
+              'Upgrade-Insecure-Requests': '1'
+            },
+            timeout: 15000,
+            maxRedirects: 5,
+            validateStatus: (status) => status < 500
+          });
+          
+          console.log(`✅ [REDDIT API] User agent ${userAgentIndex + 1} worked!`);
+          break;
+        } catch (uaError) {
+          console.log(`❌ [REDDIT API] User agent ${userAgentIndex + 1} failed:`, uaError.message);
+          userAgentIndex++;
+          if (userAgentIndex >= userAgents.length) {
+            throw uaError;
           }
         }
+      }
 
-        console.log('📥 [REDDIT API] JSON Response:', {
-          status: jsonResponse.status,
-          statusText: jsonResponse.statusText,
-          contentType: jsonResponse.headers['content-type'],
-          hasData: !!jsonResponse.data,
-          dataKeys: jsonResponse.data ? Object.keys(jsonResponse.data) : []
+      console.log('📥 [REDDIT API] JSON Response:', {
+        status: jsonResponse.status,
+        statusText: jsonResponse.statusText,
+        contentType: jsonResponse.headers['content-type'],
+        hasData: !!jsonResponse.data,
+        dataKeys: jsonResponse.data ? Object.keys(jsonResponse.data) : []
+      });
+
+      const children = jsonResponse?.data?.data?.children || [];
+      console.log('👶 [REDDIT API] JSON children found:', children.length);
+      
+      const afterFlair = children
+        .map((child) => child.data)
+        .filter((d) => !!d)
+        .filter((d) => {
+          // Flair filtering
+          const flairName = d.link_flair_text || d.author_flair_text || '';
+          const flairMatch = !requiredFlair || String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase());
+          
+          // Author filtering
+          const authorMatch = !allowedAuthor || normalizeUsername(d.author) === normalizeUsername(allowedAuthor);
+          
+          console.log('🔍 [REDDIT API] Post filter check:', {
+            title: d.title?.substring(0, 30) + '...',
+            author: d.author,
+            flair: flairName,
+            flairMatch,
+            authorMatch,
+            passes: flairMatch && authorMatch
+          });
+          
+          return flairMatch && authorMatch;
         });
 
-        const children = jsonResponse?.data?.data?.children || [];
-        console.log('👶 [REDDIT API] JSON children found:', children.length);
-        
-        const afterFlair = children
-          .map((child) => child.data)
-          .filter((d) => !!d)
-          .filter((d) => {
-            // Flair filtering
-            const flairName = d.link_flair_text || d.author_flair_text || '';
-            const flairMatch = !requiredFlair || String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase());
-            
-            // Author filtering
-            const authorMatch = !allowedAuthor || normalizeUsername(d.author) === normalizeUsername(allowedAuthor);
-            
-            console.log('🔍 [REDDIT API] Post filter check:', {
-              title: d.title?.substring(0, 30) + '...',
-              author: d.author,
-              flair: flairName,
-              flairMatch,
-              authorMatch,
-              passes: flairMatch && authorMatch
-            });
-            
-            return flairMatch && authorMatch;
-          });
+      console.log('🎯 [REDDIT API] After filtering:', afterFlair.length, 'posts');
 
-        console.log('🎯 [REDDIT API] After filtering:', afterFlair.length, 'posts');
-
-        posts = afterFlair
-          .map((d) => ({
-            id: d.id,
-            title: d.title || '',
-            selftext: d.selftext || '',
-            url: d.url || `https://reddit.com${d.permalink}`,
-            createdUtc: d.created_utc || 0,
-            author: d.author || '',
-            flair: d.link_flair_text || d.author_flair_text || null,
-            thumbnail: pickBestThumbnail(d)
-          }))
-          .slice(0, limit);
-          
-        apiMethod = 'JSON';
-        console.log('✅ [REDDIT API] JSON Success! Final posts:', posts.length);
+      posts = afterFlair
+        .map((d) => ({
+          id: d.id,
+          title: d.title || '',
+          selftext: d.selftext || '',
+          url: d.url || `https://reddit.com${d.permalink}`,
+          createdUtc: d.created_utc || 0,
+          author: d.author || '',
+          flair: d.link_flair_text || d.author_flair_text || null,
+          thumbnail: pickBestThumbnail(d)
+        }))
+        .slice(0, limit);
         
-      } catch (jsonError) {
-        console.log('❌ [REDDIT API] JSON also failed:', jsonError.message);
+      apiMethod = 'JSON';
+      console.log('✅ [REDDIT API] JSON Success! Final posts:', posts.length);
+      
+    } catch (jsonError) {
+      console.log('❌ [REDDIT API] JSON failed:', jsonError.message);
+      console.log('🔄 [REDDIT API] Attempting RSS fallback...');
+      
+      // JSON failed, try RSS API as fallback
+      try {
+        let rssUrl;
+        if (requiredFlair) {
+          const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
+          rssUrl = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
+        } else {
+          rssUrl = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
+        }
+        
+        console.log('🔗 [REDDIT API] RSS URL:', rssUrl);
+
+        const rssResponse = await axios.get(rssUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            'Accept': 'application/rss+xml, application/xml, text/xml',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache'
+          },
+          timeout: 10000,
+          validateStatus: (status) => status < 500
+        });
+
+        console.log('📥 [REDDIT API] RSS Response:', {
+          status: rssResponse.status,
+          statusText: rssResponse.statusText,
+          contentType: rssResponse.headers['content-type'],
+          dataLength: rssResponse.data?.length || 0,
+          dataPreview: rssResponse.data?.substring(0, 200) + '...'
+        });
+
+        const allPosts = await parseRedditRSS(rssResponse.data);
+        console.log('🔍 [REDDIT API] RSS parsed posts:', allPosts.length);
+        
+        // Filter by author if specified
+        let filteredPosts = allPosts;
+        if (allowedAuthor) {
+          filteredPosts = allPosts.filter(post => 
+            normalizeUsername(post.author) === normalizeUsername(allowedAuthor)
+          );
+          console.log('👤 [REDDIT API] After author filter:', filteredPosts.length, 'posts');
+        }
+        
+        posts = filteredPosts.slice(0, limit);
+        apiMethod = 'RSS';
+        console.log('✅ [REDDIT API] RSS Success! Final posts:', posts.length);
+        
+      } catch (rssError) {
+        console.log('❌ [REDDIT API] RSS also failed:', rssError.message);
         console.log('🔄 [REDDIT API] Trying direct RSS without flair as final fallback...');
         
         // Final fallback: Direct RSS without any filtering
@@ -350,7 +350,7 @@ router.get('/reddit', async (req, res) => {
         } catch (fallbackError) {
           console.log('❌ [REDDIT API] Fallback RSS also failed:', fallbackError.message);
           console.log('💥 [REDDIT API] ALL METHODS FAILED');
-          throw new Error(`All methods failed. RSS: ${rssError.message}, JSON: ${jsonError.message}, Fallback: ${fallbackError.message}`);
+          throw new Error(`All methods failed. JSON: ${jsonError.message}, RSS: ${rssError.message}, Fallback: ${fallbackError.message}`);
         }
       }
     }
