@@ -8,6 +8,12 @@ const router = express.Router();
 const redditCache = new Map(); // key -> { ts: number, payload: any }
 const BLOG_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+// Utility: normalize Reddit username (remove /u/ prefix if present)
+const normalizeUsername = (username) => {
+  if (!username) return '';
+  return String(username).replace(/^\/u\//i, '').toLowerCase();
+};
+
 // Utility: pick the best available thumbnail from a Reddit post payload
 const pickBestThumbnail = (d) => {
   const unescape = (u) => (typeof u === 'string' ? u.replace(/&amp;/g, '&') : u);
@@ -184,7 +190,7 @@ router.get('/reddit', async (req, res) => {
       let filteredPosts = allPosts;
       if (allowedAuthor) {
         filteredPosts = allPosts.filter(post => 
-          String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
+          normalizeUsername(post.author) === normalizeUsername(allowedAuthor)
         );
         console.log('👤 [REDDIT API] After author filter:', filteredPosts.length, 'posts');
       }
@@ -269,7 +275,7 @@ router.get('/reddit', async (req, res) => {
             const flairMatch = !requiredFlair || String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase());
             
             // Author filtering
-            const authorMatch = !allowedAuthor || String(d.author).toLowerCase() === String(allowedAuthor).toLowerCase();
+            const authorMatch = !allowedAuthor || normalizeUsername(d.author) === normalizeUsername(allowedAuthor);
             
             console.log('🔍 [REDDIT API] Post filter check:', {
               title: d.title?.substring(0, 30) + '...',
@@ -332,7 +338,7 @@ router.get('/reddit', async (req, res) => {
           let filteredFallbackPosts = allFallbackPosts;
           if (allowedAuthor) {
             filteredFallbackPosts = allFallbackPosts.filter(post => 
-              String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
+              normalizeUsername(post.author) === normalizeUsername(allowedAuthor)
             );
             console.log('👤 [REDDIT API] Fallback after author filter:', filteredFallbackPosts.length, 'posts');
           }
