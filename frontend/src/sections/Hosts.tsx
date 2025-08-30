@@ -38,6 +38,8 @@ const Hosts: React.FC = () => {
                       alt={`${host.name} profile`}
                       className="w-full h-full object-cover"
                       loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                     />
                   </picture>
                 </div>

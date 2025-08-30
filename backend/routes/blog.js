@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const { parseString } = require('xml2js');
 
 const router = express.Router();
 
@@ -51,9 +52,48 @@ const pickBestThumbnail = (d) => {
   return null;
 };
 
+// Helper function to parse Reddit RSS feed
+const parseRedditRSS = (xmlData) => {
+  return new Promise((resolve, reject) => {
+    parseString(xmlData, (err, result) => {
+      if (err) return reject(err);
+      
+      try {
+        const items = result?.feed?.entry || [];
+        const parsedPosts = items.map(item => {
+          const title = item.title?.[0] || '';
+          const link = item.link?.[0]?.$.href || '';
+          const author = item.author?.[0]?.name?.[0] || '';
+          const updated = item.updated?.[0] || '';
+          const content = item.content?.[0]?._ || item.content?.[0] || '';
+          
+          // Extract Reddit post ID from link
+          const idMatch = link.match(/\/comments\/([a-z0-9]+)\//);
+          const id = idMatch ? idMatch[1] : Math.random().toString(36).substr(2, 9);
+          
+          return {
+            id,
+            title: title.replace(/^r\/[^\/]+\s*-\s*/, ''), // Remove subreddit prefix
+            selftext: content.replace(/<[^>]*>/g, '').substring(0, 500), // Strip HTML, limit length
+            url: link,
+            createdUtc: Math.floor(new Date(updated).getTime() / 1000),
+            author,
+            flair: null, // RSS doesn't include flair info
+            thumbnail: null
+          };
+        });
+        
+        resolve(parsedPosts);
+      } catch (parseErr) {
+        reject(parseErr);
+      }
+    });
+  });
+};
+
 // GET /api/blog/reddit
-// Proxies Reddit search for posts with a specific flair in a subreddit and
-// returns a simplified, safe JSON payload for the frontend.
+// Fetches Reddit posts via RSS feed (more reliable than JSON API)
+// Returns a simplified, safe JSON payload for the frontend.
 router.get('/reddit', async (req, res) => {
   try {
     const rawSubreddit = process.env.REDDIT_SUBREDDIT || '';
@@ -83,76 +123,60 @@ router.get('/reddit', async (req, res) => {
       });
     }
 
+    // Use RSS feed instead of JSON API for better reliability
     let url;
     if (requiredFlair) {
-      const encodedFlair = encodeURIComponent(`flair_name:\"${requiredFlair}\"`);
-      url = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
+      // RSS search with flair (may not work as effectively as JSON, but more reliable)
+      const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
+      url = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
     } else {
-      // Fallback to latest posts if no flair filtering requested
-      url = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
+      // Fallback to latest posts RSS
+      url = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
     }
 
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
-        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
+        'Cache-Control': 'no-cache'
       },
-      timeout: 10000,
+      timeout: 15000,
       validateStatus: function (status) {
-        return status < 500; // Resolve only if status is less than 500
+        return status < 500;
       }
     });
 
-    const children = response?.data?.data?.children || [];
+    // Parse RSS feed instead of JSON
+    const allPosts = await parseRedditRSS(response.data);
 
-    const afterFlair = children
-      .map((child) => child.data)
-      .filter((d) => !!d)
-      .filter((d) => {
-        // Safety net: ensure flair matches
-        const flairName = d.link_flair_text || d.author_flair_text || '';
-        if (requiredFlair && !String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase())) {
-          return false;
-        }
-        // Optional author pinning
-        if (allowedAuthor && String(d.author).toLowerCase() !== String(allowedAuthor).toLowerCase()) {
-          return false;
-        }
-        return true;
-      })
-
-    const posts = afterFlair
-      .map((d) => ({
-        id: d.id,
-        title: d.title,
-        selftext: d.selftext || '',
-        url: `https://www.reddit.com${d.permalink}`,
-        createdUtc: d.created_utc,
-        author: d.author,
-        flair: d.link_flair_text || d.author_flair_text || null,
-        thumbnail: pickBestThumbnail(d)
-      }));
-
-    const payload = { posts };
-    if (debug) {
-      Object.assign(payload, {
-        debug: {
-          request: { subreddit, requiredFlair, allowedAuthor, limit, url },
-          redditStatus: response?.status,
-          totalChildren: children.length,
-          filteredCount: posts.length,
-          sample: (children.slice(0, 5).map((c) => ({
-            id: c?.data?.id,
-            title: c?.data?.title,
-            flair: c?.data?.link_flair_text || c?.data?.author_flair_text || null,
-            author: c?.data?.author,
-          })) || [])
-        }
-      });
+    // Filter posts by author if specified (RSS doesn't support flair filtering as effectively)
+    let filteredPosts = allPosts;
+    if (allowedAuthor) {
+      filteredPosts = allPosts.filter(post => 
+        String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
+      );
     }
+    
+    // Limit results
+    const posts = filteredPosts.slice(0, limit);
+
+    const payload = {
+      posts,
+      debug: debug ? {
+        request: { subreddit, requiredFlair, allowedAuthor, limit, url },
+        rssStatus: response.status,
+        totalPosts: allPosts.length,
+        filteredCount: filteredPosts.length,
+        finalCount: posts.length,
+        feedType: 'RSS',
+        sample: posts.slice(0, 3).map(post => ({
+          id: post.id,
+          title: post.title?.substring(0, 50) + '...',
+          author: post.author
+        }))
+      } : undefined
+    };
 
     // Store in cache and set cache headers
     redditCache.set(cacheKey, { ts: Date.now(), payload });

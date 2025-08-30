@@ -143,11 +143,11 @@ router.get('/episodes', async (req, res) => {
   try {
     // Check if we have valid cache
     if (!shouldRefreshCache()) {
-      console.log('Serving episodes from cache');
+      // Serving episodes from cache
       return res.json(episodesCache);
     }
 
-    console.log('Fetching fresh episodes from YouTube API');
+    // Fetching fresh episodes from YouTube API
 
     // Determine channel ID (prefer env; supports custom URL/username fallback)
     const channelId = await resolveChannelId();
@@ -232,13 +232,7 @@ router.get('/episodes', async (req, res) => {
     // Map videoId -> order index to preserve search order after filtering
     const orderIndex = new Map(orderedIds.map((id, idx) => [id, idx]));
 
-    console.log(`\n=== YouTube API Search Results ===`);
-    console.log(`Medium duration videos (4-20 min): ${searchMediumResponse.data.items?.length || 0}`);
-    console.log(`Long duration videos (20+ min): ${searchLongResponse.data.items?.length || 0}`);
-    console.log(`Upcoming/live videos: ${searchUpcomingResponse.data.items?.length || 0}`);
-    console.log(`Combined unique videos: ${uniqueItems.length}`);
-    console.log(`Final video details fetched: ${videoDetailsResponse.data.items?.length || 0}`);
-    console.log(`Date range: Videos published after ${publishedAfter}`);
+    // YouTube API search completed successfully
     
     // Transform and filter out Shorts with stricter criteria
     let episodes = (videoDetailsResponse.data.items || [])
@@ -275,11 +269,7 @@ router.get('/episodes', async (req, res) => {
         
         // Debug upcoming videos only (for troubleshooting)
         if (isUpcoming || liveState === 'upcoming') {
-          console.log(`\n🎯 UPCOMING VIDEO: ${title.substring(0, 50)}...`);
-          console.log(`   ID: ${video.id}`);
-          console.log(`   liveBroadcastContent: "${liveState}"`);
-          console.log(`   scheduledStartTime: ${video.liveStreamingDetails?.scheduledStartTime || 'null'}`);
-          console.log(`   isUpcoming: ${isUpcoming}, isShort: ${isShort}`);
+          // Upcoming video detected and processed
         }
         
         return {
@@ -319,22 +309,9 @@ router.get('/episodes', async (req, res) => {
       // Sort by actual timestamp to ensure proper chronological order (most recent first)
       .sort((a, b) => b.sortTimestamp - a.sortTimestamp);
        
-    console.log(`\n=== After filtering ===`);
-    console.log(`Total episodes after filter: ${episodes.length}`);
+    // Episodes filtered and processed successfully
     const upcomingCount = episodes.filter(ep => ep.isUpcoming).length;
     const recentCount = episodes.filter(ep => !ep.isUpcoming).length;
-    console.log(`Upcoming episodes: ${upcomingCount}`);
-    console.log(`Recent episodes: ${recentCount}`);
-    
-    // Log first few episodes for verification
-    episodes.slice(0, 3).forEach((ep, idx) => {
-      const dateStr = new Date(ep.sortTimestamp).toLocaleDateString();
-      const status = ep.isUpcoming ? '🔮 Upcoming' : '✅ Recent';
-      console.log(`${idx + 1}. ${ep.title.substring(0, 40)}... | ${dateStr} | ${status}`);
-    });
-    if (episodes.length > 3) {
-      console.log(`   ... and ${episodes.length - 3} more episodes`);
-    }
 
     // Mark featured episode: prefer the first upcoming, otherwise first recent
     const upcomingEpisodes = episodes.filter(ep => ep.isUpcoming);
@@ -346,18 +323,18 @@ router.get('/episodes', async (req, res) => {
         ...ep, 
         featured: ep.isUpcoming && ep.id === upcomingEpisodes[0].id 
       }));
-      console.log(`Featured upcoming episode: ${upcomingEpisodes[0].title.substring(0, 40)}...`);
+      // Featured upcoming episode selected
     } else if (recentEpisodes.length > 0) {
       // No upcoming, mark the first recent as featured
       episodes = episodes.map(ep => ({ 
         ...ep, 
         featured: !ep.isUpcoming && ep.id === recentEpisodes[0].id 
       }));
-      console.log(`Featured recent episode: ${recentEpisodes[0].title.substring(0, 40)}...`);
+      // Featured recent episode selected
     } else {
       // Fallback: mark first item as featured
       episodes = episodes.map((ep, idx) => ({ ...ep, featured: idx === 0 }));
-      console.log('Fallback: marked first episode as featured');
+      // Fallback: marked first episode as featured
     }
 
     // Optimize caching: only cache what we need
@@ -377,7 +354,7 @@ router.get('/episodes', async (req, res) => {
     episodesCache = episodesToCache;
     cacheTimestamp = Date.now();
 
-    console.log(`✅ Cached ${episodesToCache.length} episodes (${displayedEpisodes.length} displayed) for ${Math.round(CACHE_DURATION/3600000)} hours`);
+    // Episodes cached successfully
     
     res.json(episodesToCache);
 
@@ -386,7 +363,7 @@ router.get('/episodes', async (req, res) => {
     
     // If we have fallback cache, serve it
     if (episodesCache && (Date.now() - cacheTimestamp) < FALLBACK_CACHE_DURATION) {
-      console.log('Serving fallback cache due to API error');
+      // Serving fallback cache due to API error
       return res.json(episodesCache);
     }
     
@@ -402,12 +379,12 @@ router.get('/episodes/displayed', (req, res) => {
   try {
     // Check if we have valid cache
     if (!shouldRefreshCache() && displayedEpisodes.length > 0) {
-      console.log('Serving displayed episodes from cache');
+      // Serving displayed episodes from cache
       return res.json(displayedEpisodes);
     }
 
     // If no valid displayed episodes cache, return empty array with instruction to fetch full episodes
-    console.log('No valid displayed episodes cache available');
+    // No valid displayed episodes cache available
     res.json({
       episodes: [],
       message: 'Cache empty or stale. Please call /episodes endpoint to refresh cache.',

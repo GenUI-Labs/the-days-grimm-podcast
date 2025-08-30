@@ -36,7 +36,7 @@ const Blog: React.FC = () => {
   useEffect(() => {
     if (import.meta.env.DEV && debugInfo) {
       // eslint-disable-next-line no-console
-      console.log('[Blog Debug]', debugInfo)
+      // Debug info available but not logged in production
     }
   }, [debugInfo])
 

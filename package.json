@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "concurrently --kill-others \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:vercel": "concurrently --kill-others \"npm run dev:backend\" \"cd frontend && vercel dev\"",
     "dev:parallel": "npm-run-all --parallel dev:frontend dev:backend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
