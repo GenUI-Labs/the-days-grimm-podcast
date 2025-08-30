@@ -1,39 +1,77 @@
 import { motion } from 'framer-motion'
 import { Play } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface HeroProps {
   scrollToSection: (sectionId: string) => void
 }
 
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
+  const [videoLoaded, setVideoLoaded] = useState(false)
+
+  useEffect(() => {
+    // Preload videos
+    const video1 = document.createElement('video')
+    const video2 = document.createElement('video')
+    
+    video1.src = '/hero.mp4'
+    video2.src = '/hero-mobile.mp4'
+    
+    let loadedCount = 0
+    const handleLoad = () => {
+      loadedCount++
+      if (loadedCount === 2) {
+        setVideoLoaded(true)
+      }
+    }
+    
+    video1.addEventListener('loadeddata', handleLoad)
+    video2.addEventListener('loadeddata', handleLoad)
+    
+    video1.load()
+    video2.load()
+    
+    return () => {
+      video1.removeEventListener('loadeddata', handleLoad)
+      video2.removeEventListener('loadeddata', handleLoad)
+    }
+  }, [])
+
   return (
     <section id="home" className="relative min-h-[80vh] sm:min-h-screen flex items-center bg-dark pt-16 sm:pt-20 overflow-hidden">
-      {/* Background video */}
-      {/* Desktop/Tablet background video */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover hidden sm:block"
-        src="/hero.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        poster="/og-image.jpg"
-        style={{ backgroundColor: '#0a0a0a' }}
-      />
+      {/* Background video - only show when loaded */}
+      {videoLoaded && (
+        <>
+          {/* Desktop/Tablet background video */}
+          <video
+            className="absolute inset-0 w-full h-full object-cover hidden sm:block"
+            src="/hero.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster="/og-image.jpg"
+          />
 
-      {/* Mobile background video */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover sm:hidden pointer-events-none"
-        src="/hero-mobile.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        poster="/og-image.jpg"
-        style={{ backgroundColor: '#0a0a0a' }}
-      />
+          {/* Mobile background video */}
+          <video
+            className="absolute inset-0 w-full h-full object-cover sm:hidden pointer-events-none"
+            src="/hero-mobile.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster="/og-image.jpg"
+          />
+        </>
+      )}
+      
+      {/* Loading background while video loads */}
+      {!videoLoaded && (
+        <div className="absolute inset-0 bg-dark" />
+      )}
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 

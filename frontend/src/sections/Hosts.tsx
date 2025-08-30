@@ -4,7 +4,7 @@ import { hosts } from '../data/content'
 
 const Hosts: React.FC = () => {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const isInView = useInView(ref, { once: true, margin: "0px" })
 
   return (
     <section id="hosts" className="section bg-dark-medium" ref={ref}>
@@ -28,20 +28,22 @@ const Hosts: React.FC = () => {
                 transition={{ duration: 0.7, delay: 0.2 + index * 0.2 }}
               >
                 <div className="w-32 h-32 rounded-xl overflow-hidden mb-6 mx-auto">
-                  <picture>
-                    <source 
-                      srcSet={host.name === 'Brian' ? '/Brian_Day.webp' : '/Thomas_Grimm.webp'} 
-                      type="image/webp" 
-                    />
-                    <img 
-                      src={host.name === 'Brian' ? '/Brian_Day.jpg' : '/Thomas_Grimm.jpg'} 
-                      alt={`${host.name} profile`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
-                    />
-                  </picture>
+                  {isInView && (
+                    <picture>
+                      <source 
+                        srcSet={host.name === 'Brian' ? '/Brian_Day.webp' : '/Thomas_Grimm.webp'} 
+                        type="image/webp" 
+                      />
+                      <img 
+                        src={host.name === 'Brian' ? '/Brian_Day.jpg' : '/Thomas_Grimm.jpg'} 
+                        alt={`${host.name} profile`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        fetchPriority="low"
+                      />
+                    </picture>
+                  )}
                 </div>
               <h3 className="text-2xl font-bold mb-2">{host.name}</h3>
               <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-4">{host.title}</p>

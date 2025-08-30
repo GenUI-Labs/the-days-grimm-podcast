@@ -92,7 +92,7 @@ const parseRedditRSS = (xmlData) => {
 };
 
 // GET /api/blog/reddit
-// Fetches Reddit posts via RSS feed (more reliable than JSON API)
+// Hybrid approach: tries RSS first, falls back to JSON API
 // Returns a simplified, safe JSON payload for the frontend.
 router.get('/reddit', async (req, res) => {
   try {
@@ -114,7 +114,6 @@ router.get('/reddit', async (req, res) => {
       return res.json(cached.payload);
     }
 
-
     if (!subreddit) {
       return res.status(400).json({
         error: 'Missing configuration',
@@ -123,53 +122,109 @@ router.get('/reddit', async (req, res) => {
       });
     }
 
-    // Use RSS feed instead of JSON API for better reliability
-    let url;
-    if (requiredFlair) {
-      // RSS search with flair (may not work as effectively as JSON, but more reliable)
-      const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
-      url = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
-    } else {
-      // Fallback to latest posts RSS
-      url = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
-    }
+    let posts = [];
+    let apiMethod = 'unknown';
 
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Accept': 'application/rss+xml, application/xml, text/xml',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache'
-      },
-      timeout: 15000,
-      validateStatus: function (status) {
-        return status < 500;
+    // Try RSS first (more reliable in production)
+    try {
+      let rssUrl;
+      if (requiredFlair) {
+        const encodedFlair = encodeURIComponent(`flair:"${requiredFlair}"`);
+        rssUrl = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
+      } else {
+        rssUrl = `https://www.reddit.com/r/${subreddit}.rss?limit=${limit}`;
       }
-    });
 
-    // Parse RSS feed instead of JSON
-    const allPosts = await parseRedditRSS(response.data);
+      const rssResponse = await axios.get(rssUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Accept': 'application/rss+xml, application/xml, text/xml',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache'
+        },
+        timeout: 10000,
+        validateStatus: (status) => status < 500
+      });
 
-    // Filter posts by author if specified (RSS doesn't support flair filtering as effectively)
-    let filteredPosts = allPosts;
-    if (allowedAuthor) {
-      filteredPosts = allPosts.filter(post => 
-        String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
-      );
+      const allPosts = await parseRedditRSS(rssResponse.data);
+      
+      // Filter by author if specified
+      let filteredPosts = allPosts;
+      if (allowedAuthor) {
+        filteredPosts = allPosts.filter(post => 
+          String(post.author).toLowerCase() === String(allowedAuthor).toLowerCase()
+        );
+      }
+      
+      posts = filteredPosts.slice(0, limit);
+      apiMethod = 'RSS';
+      
+    } catch (rssError) {
+      // RSS failed, try JSON API as fallback
+      try {
+        let jsonUrl;
+        if (requiredFlair) {
+          const encodedFlair = encodeURIComponent(`flair_name:"${requiredFlair}"`);
+          jsonUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodedFlair}&restrict_sr=1&sort=new&limit=${limit}`;
+        } else {
+          jsonUrl = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
+        }
+
+        const jsonResponse = await axios.get(jsonUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; TheDaysGrimmPodcast/1.0; +https://thedaysgrimmpodcast.com)',
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache'
+          },
+          timeout: 10000,
+          validateStatus: (status) => status < 500
+        });
+
+        const children = jsonResponse?.data?.data?.children || [];
+        
+        const afterFlair = children
+          .map((child) => child.data)
+          .filter((d) => !!d)
+          .filter((d) => {
+            // Flair filtering
+            const flairName = d.link_flair_text || d.author_flair_text || '';
+            if (requiredFlair && !String(flairName).toLowerCase().includes(String(requiredFlair).toLowerCase())) {
+              return false;
+            }
+            // Author filtering
+            if (allowedAuthor && String(d.author).toLowerCase() !== String(allowedAuthor).toLowerCase()) {
+              return false;
+            }
+            return true;
+          });
+
+        posts = afterFlair
+          .map((d) => ({
+            id: d.id,
+            title: d.title || '',
+            selftext: d.selftext || '',
+            url: d.url || `https://reddit.com${d.permalink}`,
+            createdUtc: d.created_utc || 0,
+            author: d.author || '',
+            flair: d.link_flair_text || d.author_flair_text || null,
+            thumbnail: pickBestThumbnail(d)
+          }))
+          .slice(0, limit);
+          
+        apiMethod = 'JSON';
+        
+      } catch (jsonError) {
+        throw new Error(`Both RSS and JSON failed. RSS: ${rssError.message}, JSON: ${jsonError.message}`);
+      }
     }
-    
-    // Limit results
-    const posts = filteredPosts.slice(0, limit);
 
     const payload = {
       posts,
       debug: debug ? {
-        request: { subreddit, requiredFlair, allowedAuthor, limit, url },
-        rssStatus: response.status,
-        totalPosts: allPosts.length,
-        filteredCount: filteredPosts.length,
-        finalCount: posts.length,
-        feedType: 'RSS',
+        request: { subreddit, requiredFlair, allowedAuthor, limit },
+        apiMethod: apiMethod,
+        postsFound: posts.length,
         sample: posts.slice(0, 3).map(post => ({
           id: post.id,
           title: post.title?.substring(0, 50) + '...',
