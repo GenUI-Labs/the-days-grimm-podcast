@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Youtube, Music, Smartphone, Instagram, Facebook, MessageSquare } from 'lucide-react'
+import { Youtube, Music, Smartphone, Instagram, Facebook } from 'lucide-react'
 
 // Custom X (Twitter) Icon Component
 const XIcon = ({ size = 24, className = "" }) => (
@@ -32,14 +32,10 @@ const Contact: React.FC = () => {
     { icon: XIcon, label: 'X', href: 'https://twitter.com/thedaysgrimm' }
   ]
 
-  const contactLinks = [
-    { icon: MessageSquare, label: 'Join Our Discord', href: 'https://discord.gg/thedaysgrimm' }
-  ]
-
   return (
     <footer id="contact" className="bg-dark border-t border-dark-border py-12" ref={ref}>
       <div className="container">
-        <div className="grid md:grid-cols-4 gap-8 mb-8 text-center md:text-left max-w-4xl mx-auto md:max-w-none">
+        <div className="grid md:grid-cols-3 gap-8 mb-8 text-center md:text-left max-w-5xl mx-auto">
           {/* Brand Section */}
           <motion.div
             className="flex flex-col items-center md:items-start"
@@ -88,31 +84,6 @@ const Contact: React.FC = () => {
             <h4 className="text-lg font-semibold mb-4 gradient-text">Follow Us</h4>
             <ul className="space-y-2 flex flex-col items-center md:items-start">
               {socialLinks.map((link) => (
-                <li key={link.label}>
-                  <a 
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2 justify-center md:justify-start"
-                  >
-                    <link.icon size={18} />
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Contact Section */}
-          <motion.div
-            className="flex flex-col items-center md:items-start"
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <h4 className="text-lg font-semibold mb-4 gradient-text">Get In Touch</h4>
-            <ul className="space-y-2 flex flex-col items-center md:items-start">
-              {contactLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
