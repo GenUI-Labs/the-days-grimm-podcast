@@ -75,7 +75,6 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         muted
         playsInline
         preload="auto"
-        poster="/og-image.jpg"
       />
 
       <video
@@ -86,7 +85,6 @@ const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
         muted
         playsInline
         preload="auto"
-        poster="/og-image.jpg"
       />
       
       {/* Overlay for readability */}

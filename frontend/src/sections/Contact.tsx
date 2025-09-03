@@ -61,14 +61,14 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Listen On</h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2 flex flex-col items-center md:items-start">
               {listenLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2 justify-center md:justify-start"
                   >
                     <link.icon size={18} />
                     {link.label}
@@ -86,14 +86,14 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Follow Us</h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2 flex flex-col items-center md:items-start">
               {socialLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2 justify-center md:justify-start"
                   >
                     <link.icon size={18} />
                     {link.label}
@@ -111,14 +111,14 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.6 }}
           >
             <h4 className="text-lg font-semibold mb-4 gradient-text">Get In Touch</h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2 flex flex-col items-center md:items-start">
               {contactLinks.map((link) => (
                 <li key={link.label}>
                   <a 
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                    className="text-text-secondary hover:text-primary transition-colors duration-300 flex items-center gap-2 justify-center md:justify-start"
                   >
                     <link.icon size={18} />
                     {link.label}
