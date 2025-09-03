@@ -1,6 +1,7 @@
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useState, useRef } from 'react'
 import { fetchRedditBlogPosts, type RedditBlogPost, type RedditBlogResponse } from '../services/blog'
+import blogBackground from '/blog-background.webp'
 
 const Blog: React.FC = () => {
   const ref = useRef(null)
@@ -56,7 +57,7 @@ const Blog: React.FC = () => {
       >
         <div 
           className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: 'url(/blog-background.webp)' }}
+          style={{ backgroundImage: `url(${blogBackground})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
       </motion.div>
@@ -70,7 +71,7 @@ const Blog: React.FC = () => {
           transition={{ duration: 0.8 }}
         >
           <h2 className="text-5xl sm:text-6xl font-bold mb-6 gradient-text">
-            Latest Posts
+            Our Blog
           </h2>
           <p className="text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
             Dive into the darker corners of storytelling with our latest thoughts, insights, and discussions.
