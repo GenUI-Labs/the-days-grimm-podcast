@@ -1,5 +1,6 @@
 const express = require('express');
 const { google } = require('googleapis');
+const fetch = require('node-fetch');
 
 const router = express.Router();
 const youtube = google.youtube('v3');
@@ -277,7 +278,30 @@ router.get('/episodes', async (req, res) => {
           order: orderIndex.get(video.id) ?? 9999,
           number: getEpisodeNumber(title),
           title,
-          description: (video.snippet.description || '').split('\n')[0],
+          description: (() => {
+            const fullDescription = video.snippet.description || '';
+            // Try to get a meaningful description line (skip empty lines)
+            const lines = fullDescription.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            if (lines.length === 0) return 'No description available';
+            
+            // If first line is very short (likely just a title/header), try to get more context
+            const firstLine = lines[0];
+            if (firstLine.length < 30 && lines.length > 1) {
+              // Combine first few lines for better context, up to ~200 chars
+              let combined = firstLine;
+              for (let i = 1; i < lines.length && combined.length < 200; i++) {
+                const nextLine = lines[i];
+                // Skip lines that look like social media handles or hashtags
+                if (!nextLine.match(/^[@#]/) && !nextLine.match(/^(instagram|twitter|facebook|youtube):/i)) {
+                  combined += '. ' + nextLine;
+                }
+              }
+              return combined.length > firstLine.length ? combined : firstLine;
+            }
+            
+            // If first line is good enough, use it but limit length
+            return firstLine.length > 300 ? firstLine.substring(0, 300) + '...' : firstLine;
+          })(),
           date: new Date((isUpcoming && video.liveStreamingDetails?.scheduledStartTime)
             ? video.liveStreamingDetails.scheduledStartTime
             : (video.liveStreamingDetails?.actualStartTime || video.snippet.publishedAt)
@@ -411,6 +435,58 @@ router.get('/episodes/health', (req, res) => {
     cachedEpisodeCount: episodesCache ? episodesCache.length : 0,
     displayedEpisodeCount: displayedEpisodes ? displayedEpisodes.length : 0,
     shouldRefresh: shouldRefreshCache()
+  });
+});
+
+// Manual cache refresh endpoint for testing/debugging
+router.post('/episodes/refresh', async (req, res) => {
+  try {
+    console.log('🔄 Manual cache refresh requested');
+    
+    // Force cache invalidation
+    episodesCache = null;
+    displayedEpisodes = [];
+    cacheTimestamp = 0;
+    
+    // Fetch fresh data
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/episodes`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      res.json({
+        success: true,
+        message: 'Cache refreshed successfully',
+        episodeCount: data.episodes?.length || 0,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      throw new Error(`Failed to refresh: ${response.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Error refreshing cache:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to refresh cache',
+      message: error.message
+    });
+  }
+});
+
+// Cache status endpoint for debugging
+router.get('/episodes/cache-status', (req, res) => {
+  const now = Date.now();
+  const cacheAge = cacheTimestamp ? now - cacheTimestamp : null;
+  const isValid = !shouldRefreshCache();
+  
+  res.json({
+    hasCache: !!episodesCache,
+    cacheTimestamp: cacheTimestamp ? new Date(cacheTimestamp).toISOString() : null,
+    cacheAge: cacheAge ? Math.round(cacheAge / 1000 / 60) + ' minutes' : null,
+    isValid,
+    episodeCount: episodesCache?.episodes?.length || 0,
+    displayedCount: displayedEpisodes.length,
+    nextRefreshIn: isValid && cacheAge ? Math.round((CACHE_DURATION - cacheAge) / 1000 / 60) + ' minutes' : 'Now'
   });
 });
 
