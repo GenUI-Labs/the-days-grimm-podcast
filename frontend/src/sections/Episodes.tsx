@@ -255,7 +255,7 @@ const Episodes: React.FC = () => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="card p-8 max-w-4xl mx-auto mb-16"
+            className="bg-dark/50 backdrop-blur-sm rounded-2xl border border-dark-border/50 p-8 max-w-4xl mx-auto mb-16 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/30 hover:bg-dark/60"
           >
             {/* Title moved above image with gradient styling */}
             <div className="mb-4 sm:mb-6 text-center ">
@@ -316,7 +316,7 @@ const Episodes: React.FC = () => {
           {recentEpisodes.map((episode, index) => (
             <div
               key={episode.id || `${episode.title}-${index}`}
-              className="card p-6 relative overflow-hidden flex flex-col text-center"
+              className="bg-dark/50 backdrop-blur-sm rounded-2xl border border-dark-border/50 p-6 relative overflow-hidden flex flex-col text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/30 hover:bg-dark/60"
             >
               {/* Episode number badge intentionally removed per request */}
               <div
