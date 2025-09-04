@@ -22,7 +22,7 @@ const Hosts: React.FC = () => {
           {hosts.map((host, index) => (
               <motion.div
                 key={host.name}
-                className="card p-8 flex flex-col bg-dark/30 items-center text-center"
+                className="bg-dark/50 backdrop-blur-sm rounded-2xl border border-dark-border/50 p-8 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/30 hover:bg-dark/60"
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 0.7, delay: 0.2 + index * 0.2 }}
@@ -61,7 +61,7 @@ const Hosts: React.FC = () => {
         </div>
         
         <motion.div 
-          className="card p-8 max-w-4xl mx-auto text-center"
+          className="bg-dark/50 backdrop-blur-sm rounded-2xl border border-dark-border/50 p-8 max-w-4xl mx-auto text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/30 hover:bg-dark/60"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.6, delay: 0.6 }}
