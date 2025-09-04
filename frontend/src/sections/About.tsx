@@ -44,7 +44,7 @@ const About: React.FC = () => {
         style={{ y: backgroundY }}
       >
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          className="absolute inset-0 bg-center bg-fixed about-background"
           style={{ backgroundImage: `url(${aboutUsImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/85" />

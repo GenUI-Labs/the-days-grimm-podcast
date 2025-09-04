@@ -191,4 +191,35 @@
       opacity: 0.7;
     }
   }
+
+  /* About Section Background - Responsive Handling */
+  .about-background {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  /* Mobile: Adjust background sizing to show more of the wide image */
+  @media (max-width: 768px) {
+    .about-background {
+      background-size: auto 120%;
+      background-position: center center;
+    }
+  }
+
+  /* Tablet: Balanced approach */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .about-background {
+      background-size: cover;
+      background-position: center center;
+    }
+  }
+
+  /* Large screens: Full cover */
+  @media (min-width: 1025px) {
+    .about-background {
+      background-size: cover;
+      background-position: center center;
+    }
+  }
 }
