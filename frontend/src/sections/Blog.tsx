@@ -1,7 +1,7 @@
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useState, useRef } from 'react'
 import { fetchRedditBlogPosts, type RedditBlogPost, type RedditBlogResponse } from '../services/blog'
-import blogBackground from '/blog-background.webp'
+import blogBackground from '../../public/blog-background.webp'
 
 const Blog: React.FC = () => {
   const ref = useRef(null)
