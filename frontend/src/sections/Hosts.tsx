@@ -22,7 +22,7 @@ const Hosts: React.FC = () => {
           {hosts.map((host, index) => (
               <motion.div
                 key={host.name}
-                className="card p-8 flex flex-col items-center text-center"
+                className="card p-8 flex flex-col bg-dark/30 items-center text-center"
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 0.7, delay: 0.2 + index * 0.2 }}
