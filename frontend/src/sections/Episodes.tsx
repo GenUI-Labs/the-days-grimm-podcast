@@ -255,7 +255,7 @@ const Episodes: React.FC = () => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="bg-dark/50 backdrop-blur-sm rounded-2xl border-2 border-white/60 p-8 max-w-4xl mx-auto mb-16 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-white/20 hover:bg-dark/60 shadow-lg shadow-white/10"
+            className="bg-dark/50 backdrop-blur-sm rounded-2xl border-2 border-white/60 p-8 max-w-4xl mx-auto mb-16 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-white/30 hover:bg-dark/60 shadow-lg shadow-white/20"
           >
             {/* Title moved above image with gradient styling */}
             <div className="mb-4 sm:mb-6 text-center ">
