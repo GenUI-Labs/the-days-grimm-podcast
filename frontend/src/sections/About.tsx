@@ -1,7 +1,7 @@
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 import { Laugh, Zap, MessageCircle, Heart, Brain, Shield } from 'lucide-react'
-import aboutUsImage from '../../public/aboutUs.jpg'
+import aboutUsImage from '/aboutUs.jpg'
 
 const About: React.FC = () => {
   const ref = useRef(null)
