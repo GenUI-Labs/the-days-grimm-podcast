@@ -20,13 +20,13 @@ const About: React.FC = () => {
       icon: Laugh,
       title: "Comical",
       description: "Official genre of 'COMEDY INTERVIEWS' with a history of hosting local stand-up comedians",
-      color: "text-yellow-400"
+      color: "text-red-400"
     },
     {
       icon: Zap,
       title: "Thrilling", 
       description: "Interviews with extraordinary individuals - shooting survivors, rare medical conditions, combat veterans",
-      color: "text-blue-400"
+      color: "text-red-400"
     },
     {
       icon: MessageCircle,
@@ -37,7 +37,7 @@ const About: React.FC = () => {
   ]
 
   return (
-    <section id="about" className="relative min-h-screen flex items-center py-20 overflow-hidden" ref={ref}>
+    <section id="about" className="relative min-h-screen flex items-center overflow-hidden" ref={ref}>
       {/* Parallax Background */}
       <motion.div 
         className="absolute inset-0 will-change-transform"
@@ -73,7 +73,7 @@ const About: React.FC = () => {
                 <Heart className="text-primary w-6 h-6" />
                 <Brain className="text-primary w-6 h-6" />
               </div>
-              <p className="text-2xl italic text-primary font-medium">
+              <p className="text-2xl italic text-white font-medium">
                 "Brought to you by Sadness & ADHD (non-medicated)"
               </p>
             </motion.div>
