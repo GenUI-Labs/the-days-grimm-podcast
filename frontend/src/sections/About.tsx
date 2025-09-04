@@ -37,7 +37,7 @@ const About: React.FC = () => {
   ]
 
   return (
-    <section id="about" className="relative min-h-screen flex items-center overflow-hidden" ref={ref}>
+    <section id="about" className="relative min-h-screen flex items-center py-20 overflow-hidden" ref={ref}>
       {/* Parallax Background */}
       <motion.div 
         className="absolute inset-0 will-change-transform"
