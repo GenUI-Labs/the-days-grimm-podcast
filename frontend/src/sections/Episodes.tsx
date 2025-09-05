@@ -373,16 +373,16 @@ const Episodes: React.FC = () => {
         </div>
         
          <div className="text-center">
-           {allRecentEpisodes.length > visibleEpisodeCount ? (
+           {allRecentEpisodes.length > visibleEpisodeCount && visibleEpisodeCount < 8 ? (
              <button 
-               onClick={() => setVisibleEpisodeCount(prev => Math.min(prev + 4, 12))}
+               onClick={() => setVisibleEpisodeCount(8)}
                className="btn btn-outline mr-4"
              >
                See More Episodes
              </button>
            ) : null}
            
-           {visibleEpisodeCount >= 12 || allRecentEpisodes.length <= visibleEpisodeCount ? (
+           {visibleEpisodeCount >= 8 || allRecentEpisodes.length <= visibleEpisodeCount ? (
              <a 
                href="https://www.youtube.com/c/TheDaysGrimm" 
                target="_blank" 
