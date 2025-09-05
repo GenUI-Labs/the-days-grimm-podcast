@@ -18,7 +18,7 @@ const Blog: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<RedditBlogResponse['debug']>()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const [visibleCount, setVisibleCount] = useState<number>(6)
+  const [visibleCount, setVisibleCount] = useState<number>(4)
 
   useEffect(() => {
     let isMounted = true
@@ -169,14 +169,27 @@ const Blog: React.FC = () => {
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
               >
-                <motion.button
-                  className="bg-dark/60 backdrop-blur-sm text-white border-2 border-primary hover:bg-primary hover:border-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300"
-                  onClick={() => setVisibleCount((v) => v + 3)}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Load More Posts
-                </motion.button>
+                {visibleCount < 16 ? (
+                  <motion.button
+                    className="bg-dark/60 backdrop-blur-sm text-white border-2 border-primary hover:bg-primary hover:border-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300 mr-4"
+                    onClick={() => setVisibleCount((v) => Math.min(v + 4, 16))}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Load 4 More Posts
+                  </motion.button>
+                ) : (
+                  <motion.a
+                    href="https://www.reddit.com/r/thedaysgrimm"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-dark/60 backdrop-blur-sm text-white border-2 border-primary hover:bg-primary hover:border-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300 inline-block"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Visit Our Reddit Community
+                  </motion.a>
+                )}
               </motion.div>
             )}
           </>

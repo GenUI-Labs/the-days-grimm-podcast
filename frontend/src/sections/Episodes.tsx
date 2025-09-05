@@ -10,6 +10,7 @@ const Episodes: React.FC = () => {
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [visibleEpisodeCount, setVisibleEpisodeCount] = useState<number>(4)
 
   useEffect(() => {
     let isMounted = true
@@ -32,14 +33,15 @@ const Episodes: React.FC = () => {
 
   const featuredEpisode = episodes.find(ep => ep.featured)
   const upcomingEpisodes = (episodes as any[]).filter(ep => (ep as any).isUpcoming)
-  const recentEpisodes = episodes
+  const allRecentEpisodes = episodes
     .filter((ep: any) => !ep.isUpcoming)
     .sort((a: any, b: any) => {
       const ta = typeof a.sortTimestamp === 'number' ? a.sortTimestamp : Date.parse(a.date || '') || 0
       const tb = typeof b.sortTimestamp === 'number' ? b.sortTimestamp : Date.parse(b.date || '') || 0
       return tb - ta
     })
-    .slice(0, 4)
+  
+  const recentEpisodes = allRecentEpisodes.slice(0, visibleEpisodeCount)
 
   // Auto-rotate upcoming episodes if there are 2 or more
   const [upcomingIndex, setUpcomingIndex] = useState(0)
@@ -371,14 +373,25 @@ const Episodes: React.FC = () => {
         </div>
         
          <div className="text-center">
-           <a 
-             href="https://www.youtube.com/c/TheDaysGrimm" 
-             target="_blank" 
-             rel="noopener noreferrer"
-             className="btn btn-outline"
-           >
-             See More Episodes
-           </a>
+           {allRecentEpisodes.length > visibleEpisodeCount ? (
+             <button 
+               onClick={() => setVisibleEpisodeCount(prev => Math.min(prev + 4, 12))}
+               className="btn btn-outline mr-4"
+             >
+               Load 4 More Episodes
+             </button>
+           ) : null}
+           
+           {visibleEpisodeCount >= 12 || allRecentEpisodes.length <= visibleEpisodeCount ? (
+             <a 
+               href="https://www.youtube.com/c/TheDaysGrimm" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="btn btn-outline"
+             >
+               Visit Our YouTube Channel
+             </a>
+           ) : null}
          </div>
       </div>
     </section>
