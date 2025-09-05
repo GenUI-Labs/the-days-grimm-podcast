@@ -9,7 +9,7 @@ const Hosts: React.FC = () => {
 
   return (
     <section id="hosts" className="section bg-dark-medium relative overflow-hidden" ref={ref}>
-      {/* Artistic Background Elements */}
+      {/* Artistic Background Elements */} 
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-40 right-20 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
