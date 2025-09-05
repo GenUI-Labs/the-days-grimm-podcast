@@ -192,33 +192,42 @@
     }
   }
 
-  /* About Section Background - Responsive Handling */
+  /* About Section Background - Optimized for wide banner images */
   .about-background {
-    background-size: cover;
+    background-size: 100% auto;
     background-position: center center;
     background-repeat: no-repeat;
+    min-height: 100vh;
   }
 
-  /* Mobile: Adjust background sizing to show more of the wide image */
+  /* Mobile: Show more of the wide banner without extreme zoom */
   @media (max-width: 768px) {
     .about-background {
-      background-size: auto 120%;
+      background-size: auto 100vh;
       background-position: center center;
     }
   }
 
-  /* Tablet: Balanced approach */
+  /* Tablet: Balanced width-based scaling */
   @media (min-width: 769px) and (max-width: 1024px) {
     .about-background {
-      background-size: cover;
+      background-size: 100% auto;
       background-position: center center;
     }
   }
 
-  /* Large screens: Full cover */
+  /* Large screens: Width-based scaling shows more content */
   @media (min-width: 1025px) {
     .about-background {
-      background-size: cover;
+      background-size: 100% auto;
+      background-position: center center;
+    }
+  }
+
+  /* Ultra-wide screens: Prevent excessive stretching */
+  @media (min-width: 1920px) {
+    .about-background {
+      background-size: 120% auto;
       background-position: center center;
     }
   }
