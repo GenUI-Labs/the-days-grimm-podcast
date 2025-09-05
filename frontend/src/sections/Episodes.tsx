@@ -378,7 +378,7 @@ const Episodes: React.FC = () => {
                onClick={() => setVisibleEpisodeCount(prev => Math.min(prev + 4, 12))}
                className="btn btn-outline mr-4"
              >
-               Load 4 More Episodes
+               See More Episodes
              </button>
            ) : null}
            
