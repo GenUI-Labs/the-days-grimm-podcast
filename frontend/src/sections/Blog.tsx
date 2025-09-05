@@ -140,9 +140,6 @@ const Blog: React.FC = () => {
                                 day: 'numeric'
                               })}
                             </span>
-                            {post.author && (
-                              <span className="text-sm">by u/{post.author}</span>
-                            )}
                           </div>
                           <motion.a
                             href={post.url}
